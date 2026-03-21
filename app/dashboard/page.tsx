@@ -1,6 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
