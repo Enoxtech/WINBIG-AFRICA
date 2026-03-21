@@ -2,14 +2,11 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="section-title mb-6">About WINBIG AFRICA</h1>
@@ -56,7 +53,6 @@ export default function AboutPage() {
           </div>
         </motion.div>
       </div>
-      <Footer />
     </div>
   );
 }

@@ -2,8 +2,6 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import CampaignCard from '../components/CampaignCard';
 import { getCampaigns } from '../api';
 
@@ -35,7 +33,6 @@ export default function CampaignsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -87,7 +84,6 @@ export default function CampaignsPage() {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

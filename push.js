@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const TOKEN = process.env.VERCEL_PAT;
+const TOKEN = 'vcp_0HLrkSHEDMrBBmVleW3DYst85Pjpem6swDu6Aqxd8kZRYMMKjR3bTcsa';
 const OWNER = 'WINBIG-AFRICA';
 const REPO = 'wingit-frontend';
 const BRANCH = 'main';
