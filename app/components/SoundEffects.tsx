@@ -97,6 +97,9 @@ export function SoundEffectsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Backwards compatibility alias
+export const SoundProvider = SoundEffectsProvider;
+
 export function useSoundEffects() {
   const context = useContext(SoundEffectsContext);
   if (!context) {
