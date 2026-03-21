@@ -3,7 +3,7 @@ export const runtime = 'nodejs';
 
 import dynamic from 'next/dynamic';
 
-const DashboardContent = dynamic(() => import('./DashboardClient'), {
+const DashboardContent = dynamic(() => import('./DashboardContent'), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen bg-light-gray flex items-center justify-center">
