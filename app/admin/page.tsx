@@ -67,7 +67,7 @@ export default function AdminPage() {
     if (!token) return;
     setCreating(true);
     try {
-      await createAdminCampaign({
+      await createCampaign({
         title: form.title,
         description: form.description,
         image_url: form.image_url,
