@@ -1,0 +1,66 @@
+
+> winbig-temp@0.1.0 build
+> next build
+
+⚠ `eslint` configuration in next.config.ts is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+⚠ Invalid next.config.ts options detected: 
+⚠     Unrecognized key(s) in object: 'eslint'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.2.0 (Turbopack)
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 2 errors:
+./app/dashboard/page.tsx:4:1
+Module not found: Can't resolve '../../api'
+  [90m2 |[0m [36mimport[0m { useState, useEffect, useCallback } [36mfrom[0m [32m'react'[0m;
+  [90m3 |[0m [36mimport[0m { motion, [33mAnimatePresence[0m } [36mfrom[0m [32m'framer-motion'[0m;
+[31m[1m>[0m [90m4 |[0m [36mimport[0m { getUserTickets, getCampaign } [36mfrom[0m [32m'../../api'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m5 |[0m [36mimport[0m { useAuth } [36mfrom[0m [32m'../../context/AuthContext'[0m;
+  [90m6 |[0m [36mimport[0m [33mNavbar[0m [36mfrom[0m [32m'../components/Navbar'[0m;
+  [90m7 |[0m [36mimport[0m [33mFooter[0m [36mfrom[0m [32m'../components/Footer'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/dashboard/page.tsx [Client Component Browser]
+    ./app/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/dashboard/page.tsx [Client Component SSR]
+    ./app/dashboard/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./app/dashboard/page.tsx:5:1
+Module not found: Can't resolve '../../context/AuthContext'
+  [90m3 |[0m [36mimport[0m { motion, [33mAnimatePresence[0m } [36mfrom[0m [32m'framer-motion'[0m;
+  [90m4 |[0m [36mimport[0m { getUserTickets, getCampaign } [36mfrom[0m [32m'../../api'[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { useAuth } [36mfrom[0m [32m'../../context/AuthContext'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m [33mNavbar[0m [36mfrom[0m [32m'../components/Navbar'[0m;
+  [90m7 |[0m [36mimport[0m [33mFooter[0m [36mfrom[0m [32m'../components/Footer'[0m;
+  [90m8 |[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/dashboard/page.tsx [Client Component Browser]
+    ./app/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/dashboard/page.tsx [Client Component SSR]
+    ./app/dashboard/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./app/dashboard/page.tsx:4:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./app/dashboard/page.tsx:5:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

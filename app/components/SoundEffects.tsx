@@ -1,78 +1,65 @@
 'use client';
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 
-interface SoundContextType {
-  soundsEnabled: boolean;
-  toggleSounds: () => void;
-  playClick: () => void;
-  playPurchase: () => void;
-}
+interface SoundCtx { soundsEnabled: boolean; toggle: () => void; playClick: () => void; playSuccess: () => void; }
 
-const SoundContext = createContext<SoundContextType>({
-  soundsEnabled: false,
-  toggleSounds: () => {},
-  playClick: () => {},
-  playPurchase: () => {},
-});
+const SoundContext = createContext<SoundCtx>({ soundsEnabled: false, toggle: () => {}, playClick: () => {}, playSuccess: () => {} });
+export const useSounds = () => useContext(SoundContext);
 
 export function SoundProvider({ children }: { children: React.ReactNode }) {
   const [soundsEnabled, setSoundsEnabled] = useState(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
+  const [audioCtx, setAudioCtx] = useState<any>(null);
+  const pathname = usePathname();
 
-  const getCtx = useCallback(() => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    return audioCtxRef.current;
+  useEffect(() => {
+    const stored = localStorage.getItem('winbig-sounds');
+    if (stored === 'true') setSoundsEnabled(true);
   }, []);
 
-  const playClick = useCallback(() => {
-    if (!soundsEnabled) return;
+  useEffect(() => {
+    if (soundsEnabled && typeof window !== 'undefined') {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      setAudioCtx(ctx);
+      return () => ctx.close();
+    }
+  }, [soundsEnabled]);
+
+  const playTone = useCallback((freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.08) => {
+    if (!audioCtx || !soundsEnabled) return;
     try {
-      const ctx = getCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 800;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.08);
+      gain.connect(audioCtx.destination);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + dur);
     } catch {}
-  }, [soundsEnabled, getCtx]);
+  }, [audioCtx, soundsEnabled]);
 
-  const playPurchase = useCallback(() => {
-    if (!soundsEnabled) return;
-    try {
-      const ctx = getCtx();
-      const notes = [523, 659, 784, 1047];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-        const t = ctx.currentTime + i * 0.1;
-        gain.gain.setValueAtTime(0.12, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-        osc.start(t);
-        osc.stop(t + 0.2);
-      });
-    } catch {}
-  }, [soundsEnabled, getCtx]);
+  const playClick = useCallback(() => playTone(800, 0.05, 'square', 0.05), [playTone]);
+  const playSuccess = useCallback(() => {
+    if (!audioCtx || !soundsEnabled) return;
+    playTone(523, 0.1, 'sine', 0.1);
+    setTimeout(() => playTone(659, 0.1, 'sine', 0.1), 100);
+    setTimeout(() => playTone(784, 0.2, 'sine', 0.1), 200);
+  }, [audioCtx, soundsEnabled, playTone]);
 
-  const toggleSounds = useCallback(() => {
-    setSoundsEnabled(prev => !prev);
+  const toggle = useCallback(() => {
+    setSoundsEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem('winbig-sounds', String(next));
+      return next;
+    });
   }, []);
 
   return (
-    <SoundContext.Provider value={{ soundsEnabled, toggleSounds, playClick, playPurchase }}>
+    <SoundContext.Provider value={{ soundsEnabled, toggle, playClick, playSuccess }}>
       {children}
     </SoundContext.Provider>
   );
 }
-
-export const useSounds = () => useContext(SoundContext);

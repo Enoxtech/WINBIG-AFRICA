@@ -1,13 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { SoundProvider } from './components/SoundEffects';
-import ScrollProgressBar from './components/ScrollProgressBar';
-import PageTransition from './components/PageTransition';
-import CursorTrail from './components/CursorTrail';
+import ClientLayout from './ClientLayout';
 
 export const metadata: Metadata = {
-  title: 'WINBIG AFRICA — Africa\'s Premier Lottery & Raffle Platform',
-  description: 'Win big with small entry fees. Join transparent, fair, and secure raffle campaigns across Nigeria and Africa.',
+  title: 'WINBIG AFRICA — Nigeria\'s Premier Lottery Platform',
+  description: 'Win life-changing prizes! Enter lottery campaigns for as little as ₦100. ₦5,000,000 Mega Jackpot, cars, gadgets, and more. Nigeria\'s most trusted raffle platform.',
   icons: {
     icon: '/favicon.ico',
   },
@@ -16,22 +13,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="antialiased">
-        <SoundProvider>
-          <ScrollProgressBar />
-          <PageTransition>
-            <CursorTrail />
-            {children}
-          </PageTransition>
-        </SoundProvider>
+      <body>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

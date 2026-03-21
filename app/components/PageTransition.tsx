@@ -1,42 +1,42 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [entering, setEntering] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
 
   useEffect(() => {
-    setEntering(true);
-    const timer = setTimeout(() => setEntering(false), 700);
-    return () => clearTimeout(timer);
+    setTransitioning(true);
+    const t = setTimeout(() => setTransitioning(false), 600);
+    return () => clearTimeout(t);
   }, [pathname]);
 
   return (
     <>
-      <AnimatePresence>
-        {entering && (
-          <motion.div
-            key="page-bar"
-            initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ scaleX: 1, opacity: 0 }}
-            exit={{ scaleX: 0, opacity: 0 }}
-            transition={{ duration: 0.6, ease: 'easeInOut' }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '3px',
-              background: 'linear-gradient(to right, #D4AF37, #fbbf24, #D4AF37)',
-              transformOrigin: 'left',
-              zIndex: 9999,
-            }}
-          />
-        )}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          {children}
+        </motion.div>
       </AnimatePresence>
-      {children}
+      {/* Gold sweep overlay on route change */}
+      {transitioning && (
+        <motion.div
+          initial={{ scaleX: 0, originX: 0 }}
+          animate={{ scaleX: 1, originX: 0 }}
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          className="fixed inset-0 z-[200] pointer-events-none"
+          style={{
+            background: 'linear-gradient(to right, transparent, rgba(212,175,55,0.15), transparent)',
+          }}
+        />
+      )}
     </>
   );
 }

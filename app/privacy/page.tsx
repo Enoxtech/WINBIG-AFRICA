@@ -1,113 +1,86 @@
-'use client';
-import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-light-gray">
-      <Navbar />
-
-      <section className="bg-deep-blue py-16">
-        <div className="max-w-4xl mx-auto px-4">
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-            <h1 className="text-4xl font-black text-white mb-2">Privacy Policy</h1>
-            <p className="text-gray-400 text-sm">Last updated: March 21, 2026</p>
-          </motion.div>
-        </div>
+      <section className="bg-deep-blue py-16 text-center px-4">
+        <h1 className="text-4xl font-black text-white">Privacy Policy</h1>
+        <p className="text-gray-400 mt-2">Last updated: March 2026</p>
       </section>
 
-      <section className="max-w-4xl mx-auto px-4 py-14">
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl p-8 shadow-sm space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-gray-100 space-y-8">
 
-          <div>
+          <section>
             <h2 className="text-xl font-bold text-deep-blue mb-3">1. Introduction</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">WINBIG AFRICA LIMITED (&quot;WINBIG,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website, mobile application, and related services (collectively, the &quot;Platform&quot;). This policy complies with the Nigeria Data Protection Regulation (NDPR) 2019 and other applicable laws.</p>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed">WINBIG AFRICA (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. By using WINBIG AFRICA, you consent to the practices described in this policy.</p>
+          </section>
 
-          <div>
+          <section>
             <h2 className="text-xl font-bold text-deep-blue mb-3">2. Information We Collect</h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-2">We collect the following categories of information:</p>
-            <ul className="text-gray-600 text-sm space-y-1 list-disc pl-5">
-              <li><strong>Account Information:</strong> Full name, email address, phone number, date of birth, and mailing address.</li>
-              <li><strong>Payment Information:</strong> Card details, bank account information, and transaction history (processed securely via our payment processor; we do not store full card numbers).</li>
-              <li><strong>Identity Verification:</strong> Government-issued ID, biometric data (where required for prize claims).</li>
-              <li><strong>Usage Data:</strong> Device type, IP address, browser type, pages visited, and interaction data collected via cookies and similar technologies.</li>
-              <li><strong>Communication Data:</strong> Messages, support tickets, and feedback you send us.</li>
-            </ul>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed">We collect the following categories of information: <strong>Account Information</strong> — name, email address, phone number, date of birth, and nationality. <strong>Payment Information</strong> — bank account details, card information (processed via secure payment processors, not stored on our servers). <strong>Usage Data</strong> — IP address, device information, browser type, pages visited, and interaction patterns. <strong>Communication Data</strong> — messages you send us via email, chat, or WhatsApp.</p>
+          </section>
 
-          <div>
+          <section>
             <h2 className="text-xl font-bold text-deep-blue mb-3">3. How We Use Your Information</h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-2">We use your information to:</p>
-            <ul className="text-gray-600 text-sm space-y-1 list-disc pl-5">
-              <li>Process ticket purchases and distribute prizes</li>
-              <li>Create and manage your account</li>
-              <li>Send transactional emails (purchase confirmations, draw results, winner notifications)</li>
-              <li>Comply with legal obligations (KYC, anti-fraud, regulatory reporting)</li>
-              <li>Improve our Platform and customer service</li>
-              <li>Send promotional communications (you can opt out at any time)</li>
-            </ul>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed">We use your information to: provide and maintain your WINBIG AFRICA account; process ticket purchases and draw entries; notify you of draw results and winnings; process prize payouts via bank transfer; respond to your support requests; detect and prevent fraud, money laundering, and underage participation; send you promotional communications (you can opt out at any time); comply with legal obligations under Nigerian law.</p>
+          </section>
 
-          <div>
+          <section>
             <h2 className="text-xl font-bold text-deep-blue mb-3">4. Data Sharing</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">We do not sell your personal data. We may share your information with: (a) payment processors and banks to process transactions; (b) regulatory authorities as required by Nigerian law; (c) auditors or legal counsel in the event of a dispute or investigation; (d) third-party service providers who host or maintain our systems (bound by confidentiality agreements). Winner names and cities may be published for promotional purposes unless you specifically opt out.</p>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed">We do NOT sell your personal data. We share your information only with: <strong>Service Providers</strong> — payment processors (for transactions), KYC/identity verification providers, SMS/email delivery services. <strong>Legal Requirements</strong> — when required by Nigerian law, court order, or regulatory authority (including NLRC and EFCC). <strong>Business Transfers</strong> — in the event of a merger or acquisition, your data may be transferred to the new entity.</p>
+          </section>
 
-          <div>
+          <section>
             <h2 className="text-xl font-bold text-deep-blue mb-3">5. Data Retention</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">We retain your account data for as long as your account is active and for a period of 7 years after account closure for legal and regulatory compliance purposes. Transaction records are retained for 7 years per Nigerian Financial Regulations requirements. You may request deletion of your data at any time, subject to our legal retention obligations.</p>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed">We retain your account data for the duration of your account plus 5 years after closure, as required by Nigerian financial regulations. Transaction records are retained for 7 years. You may request deletion of your account at any time — see Section 9.</p>
+          </section>
 
-          <div>
+          <section>
             <h2 className="text-xl font-bold text-deep-blue mb-3">6. Data Security</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">We implement industry-standard technical and organizational security measures including 256-bit SSL encryption, secure cloud hosting, access controls, regular security audits, and staff training. No method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed">We implement industry-standard encryption (TLS 1.3) for data in transit and AES-256 encryption for data at rest. Access to personal data is restricted to authorized personnel only. Our servers are hosted on secure, SSAE-18 compliant data centers. In the event of a data breach, we will notify affected users within 72 hours as required by the NDPR.</p>
+          </section>
 
-          <div>
-            <h2 className="text-xl font-bold text-deep-blue mb-3">7. Your Rights (Under NDPR)</h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-2">You have the right to:</p>
-            <ul className="text-gray-600 text-sm space-y-1 list-disc pl-5">
-              <li>Access your personal data upon written request</li>
-              <li>Rectify inaccurate personal data</li>
-              <li>Request erasure of your data (subject to legal holds)</li>
-              <li>Restrict or object to processing of your data</li>
-              <li>Data portability where applicable</li>
-              <li>Withdraw consent to marketing communications at any time</li>
-            </ul>
-            <p className="text-gray-600 text-sm leading-relaxed mt-2">To exercise any of these rights, email <strong>privacy@winbig.africa</strong>. We will respond within 30 days.</p>
-          </div>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">7. Cookies & Tracking</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">We use essential cookies for authentication and session management. Analytics cookies (Google Analytics, Mixpanel) help us understand how users interact with the Platform — this data is anonymized and aggregated. Marketing pixels (Facebook, Google) are used for advertising — you can opt out via your browser settings. You can disable cookies via your browser settings, but some Platform features may not work properly without them.</p>
+          </section>
 
-          <div>
-            <h2 className="text-xl font-bold text-deep-blue mb-3">8. Cookies & Tracking</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">We use cookies and similar technologies to: remember your login session, analyze site traffic, personalize content, and serve relevant advertisements. You can control cookie preferences through your browser settings. Disabling cookies may affect Platform functionality.</p>
-          </div>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">8. Your Rights (NDPR)</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">Under the Nigeria Data Protection Regulation (NDPR) 2019, you have the right to: <strong>Access</strong> — request a copy of all data we hold about you. <strong>Rectification</strong> — request correction of inaccurate data. <strong>Erasure</strong> — request deletion of your account and associated data. <strong>Portability</strong> — request your data in machine-readable format. <strong>Object</strong> — object to processing of your data for marketing purposes. To exercise any of these rights, email <span className="text-deep-blue font-medium">privacy@winbig.africa</span>.</p>
+          </section>
 
-          <div>
-            <h2 className="text-xl font-bold text-deep-blue mb-3">9. Children&apos;s Privacy</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">WINBIG AFRICA does not knowingly collect personal information from anyone under 18 years of age. If we discover that we have collected data from a minor, we will delete it immediately. If you believe a minor has used our Platform, please contact us at <strong>privacy@winbig.africa</strong>.</p>
-          </div>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">9. Account Deletion</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">You may delete your account from Settings. Upon deletion: your personal data will be removed from active systems within 30 days; backup copies may persist for up to 90 days; transaction records for regulatory compliance are retained per Section 5. Note: tickets already purchased are non-refundable and account deletion does not reverse completed transactions.</p>
+          </section>
 
-          <div>
-            <h2 className="text-xl font-bold text-deep-blue mb-3">10. International Transfers</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">Your data is processed and stored primarily in Nigeria. Where we use cloud service providers with servers outside Nigeria, we ensure appropriate data transfer mechanisms (such as Standard Contractual Clauses) are in place in compliance with NDPR Article 27.</p>
-          </div>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">10. Marketing Communications</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">By creating an account, you agree to receive transactional emails (draw results, account updates). Marketing communications (promotions, new campaigns) require your explicit opt-in. You can unsubscribe at any time via the link in any marketing email or in your account settings. We never share your email address with third-party marketers.</p>
+          </section>
 
-          <div>
-            <h2 className="text-xl font-bold text-deep-blue mb-3">11. Changes to This Policy</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">We may update this Privacy Policy from time to time. The updated version will be indicated by a revised &quot;Last updated&quot; date at the top of this page. We encourage you to review this Policy periodically.</p>
-          </div>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">11. Children&apos;s Privacy</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">WINBIG AFRICA does not knowingly collect data from individuals under 18. If we discover that we have collected data from a minor, we will immediately delete that account and any associated data. Parents or guardians who suspect underage access should contact us at <span className="text-deep-blue font-medium">safety@winbig.africa</span>.</p>
+          </section>
 
-          <div>
-            <h2 className="text-xl font-bold text-deep-blue mb-3">12. Contact Us</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">WINBIG AFRICA LIMITED, 15 Admiralty Way, Lekki Phase 1, Lagos, Nigeria.<br />Email: <strong>privacy@winbig.africa</strong><br />Phone: <strong>+234 800 WINBIG (800 946 244)</strong></p>
-          </div>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">12. International Transfers</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">WINBIG AFRICA is operated from Nigeria. Your data may be processed on servers outside Nigeria (e.g., for cloud infrastructure). We ensure any international transfer is covered by appropriate safeguards such as Standard Contractual Clauses or adequacy decisions.</p>
+          </section>
 
-        </motion.div>
-      </section>
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">13. Changes to This Policy</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">We may update this Privacy Policy from time to time. We will notify you of material changes via email and/or Platform notification at least 30 days before they take effect. Continued use of WINBIG AFRICA after changes constitutes acceptance.</p>
+          </section>
 
-      <Footer />
+          <section>
+            <h2 className="text-xl font-bold text-deep-blue mb-3">14. Contact Us</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">For privacy-related questions, data access requests, or to report a security concern: <strong>Email:</strong> privacy@winbig.africa · <strong>WhatsApp:</strong> +234 800 WINBIG · <strong>Address:</strong> WINBIG AFRICA, Lagos, Nigeria. We respond to all legitimate requests within 30 days.</p>
+          </section>
+
+        </div>
+      </div>
     </div>
   );
 }
