@@ -1,65 +1,106 @@
 'use client';
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useSound } from './SoundContext';
 
-interface SoundCtx { soundsEnabled: boolean; toggle: () => void; playClick: () => void; playSuccess: () => void; }
+interface SoundEffectsContextType {
+  playClick: () => void;
+  playSuccess: () => void;
+  playError: () => void;
+  playChaChing: () => void;
+}
 
-const SoundContext = createContext<SoundCtx>({ soundsEnabled: false, toggle: () => {}, playClick: () => {}, playSuccess: () => {} });
-export const useSounds = () => useContext(SoundContext);
+const SoundEffectsContext = createContext<SoundEffectsContextType | null>(null);
 
-export function SoundProvider({ children }: { children: React.ReactNode }) {
-  const [soundsEnabled, setSoundsEnabled] = useState(false);
-  const [audioCtx, setAudioCtx] = useState<any>(null);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const stored = localStorage.getItem('winbig-sounds');
-    if (stored === 'true') setSoundsEnabled(true);
-  }, []);
+export function SoundEffectsProvider({ children }: { children: ReactNode }) {
+  const { soundsEnabled } = useSound();
+  const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
 
   useEffect(() => {
     if (soundsEnabled && typeof window !== 'undefined') {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
       setAudioCtx(ctx);
-      return () => ctx.close();
+      return () => { void ctx.close(); };
     }
   }, [soundsEnabled]);
 
-  const playTone = useCallback((freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.08) => {
-    if (!audioCtx || !soundsEnabled) return;
+  const playClick = () => {
+    if (!soundsEnabled) return;
     try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gain = osc.createGain();
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + dur);
+      gain.connect(osc.destination);
+      gain.gain.setValueAtTime(0.3, osc.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.1);
+      osc.start();
+      osc.stop(osc.currentTime + 0.1);
+      osc.onended = () => osc.close();
     } catch {}
-  }, [audioCtx, soundsEnabled]);
+  };
 
-  const playClick = useCallback(() => playTone(800, 0.05, 'square', 0.05), [playTone]);
-  const playSuccess = useCallback(() => {
-    if (!audioCtx || !soundsEnabled) return;
-    playTone(523, 0.1, 'sine', 0.1);
-    setTimeout(() => playTone(659, 0.1, 'sine', 0.1), 100);
-    setTimeout(() => playTone(784, 0.2, 'sine', 0.1), 200);
-  }, [audioCtx, soundsEnabled, playTone]);
+  const playSuccess = () => {
+    if (!soundsEnabled) return;
+    try {
+      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gain = osc.createGain();
+      osc.connect(gain);
+      gain.connect(osc.destination);
+      gain.gain.setValueAtTime(0.3, osc.currentTime);
+      osc.frequency.setValueAtTime(523.25, osc.currentTime);
+      osc.frequency.setValueAtTime(659.25, osc.currentTime + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.3);
+      osc.start();
+      osc.stop(osc.currentTime + 0.3);
+      osc.onended = () => osc.close();
+    } catch {}
+  };
 
-  const toggle = useCallback(() => {
-    setSoundsEnabled(prev => {
-      const next = !prev;
-      localStorage.setItem('winbig-sounds', String(next));
-      return next;
-    });
-  }, []);
+  const playError = () => {
+    if (!soundsEnabled) return;
+    try {
+      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gain = osc.createGain();
+      osc.connect(gain);
+      gain.connect(osc.destination);
+      gain.gain.setValueAtTime(0.3, osc.currentTime);
+      osc.frequency.setValueAtTime(200, osc.currentTime);
+      osc.frequency.setValueAtTime(150, osc.currentTime + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.3);
+      osc.start();
+      osc.stop(osc.currentTime + 0.3);
+      osc.onended = () => osc.close();
+    } catch {}
+  };
+
+  const playChaChing = () => {
+    if (!soundsEnabled) return;
+    try {
+      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gain = osc.createGain();
+      osc.connect(gain);
+      gain.connect(osc.destination);
+      gain.gain.setValueAtTime(0.4, osc.currentTime);
+      osc.frequency.setValueAtTime(1200, osc.currentTime);
+      osc.frequency.setValueAtTime(1500, osc.currentTime + 0.1);
+      osc.frequency.setValueAtTime(1800, osc.currentTime + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.4);
+      osc.start();
+      osc.stop(osc.currentTime + 0.4);
+      osc.onended = () => osc.close();
+    } catch {}
+  };
 
   return (
-    <SoundContext.Provider value={{ soundsEnabled, toggle, playClick, playSuccess }}>
+    <SoundEffectsContext.Provider value={{ playClick, playSuccess, playError, playChaChing }}>
       {children}
-    </SoundContext.Provider>
+    </SoundEffectsContext.Provider>
   );
+}
+
+export function useSoundEffects() {
+  const context = useContext(SoundEffectsContext);
+  if (!context) {
+    return { playClick: () => {}, playSuccess: () => {}, playError: () => {}, playChaChing: () => {} };
+  }
+  return context;
 }
