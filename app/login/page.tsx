@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { login } from '../api';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const { login: authLogin } = useAuth();
@@ -17,7 +18,8 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventSetLoading(true);
+    e.preventDefault();
+    setLoading(true);
     setError(null);
     
     try {

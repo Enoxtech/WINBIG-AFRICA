@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { register } from '../api';
+import Link from 'next/link';
 
 export default function RegisterPage() {
   const { login } = useAuth();
