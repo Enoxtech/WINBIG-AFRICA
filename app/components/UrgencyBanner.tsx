@@ -7,9 +7,10 @@ interface UrgencyBannerProps {
 
 export default function UrgencyBanner({ campaigns }: UrgencyBannerProps) {
   // Default to showing the weekly raffle if no campaigns provided
+  // Use a FIXED date — never Date.now() which restarts on every refresh
   const urgent = campaigns?.[0] || {
     title: '₦500,000 Weekly Raffle',
-    draw_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    draw_date: '2026-03-28T17:00:00.000Z',
   };
 
   return (
