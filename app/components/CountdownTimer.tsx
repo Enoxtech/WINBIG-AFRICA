@@ -1,54 +1,38 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
-interface Props {
-  endDate: string;
-  onComplete?: () => void;
+interface CountdownTimerProps {
+  targetDate: string | Date;
+  className?: string;
+  onExpire?: () => void;
 }
 
-export default function CountdownTimer({ endDate, onComplete }: Props) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isComplete, setIsComplete] = useState(false);
+export default function CountdownTimer({ targetDate, className = '', onExpire }: CountdownTimerProps) {
+  const [diff, setDiff] = useState(0);
 
   useEffect(() => {
-    const calc = () => {
-      const diff = new Date(endDate).getTime() - Date.now();
-      if (diff <= 0) {
-        setIsComplete(true);
-        onComplete?.();
-        return;
-      }
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / (1000 * 60)) % 60),
-        seconds: Math.floor((diff / 1000) % 60),
-      });
+    const target = new Date(targetDate).getTime();
+    const tick = () => {
+      const now = Date.now();
+      const d = target - now;
+      setDiff(d > 0 ? d : 0);
+      if (d <= 0 && onExpire) onExpire();
     };
-    calc();
-    const interval = setInterval(calc, 1000);
-    return () => clearInterval(interval);
-  }, [endDate, onComplete]);
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetDate, onExpire]);
 
-  if (isComplete) {
-    return <span className="text-red-500 font-semibold">Draw Ended</span>;
-  }
+  if (diff <= 0) return <span className={className}>Ended</span>;
 
-  const pad = (n: number) => String(n).padStart(2, '0');
+  const totalSec = Math.floor(diff / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
 
-  return (
-    <div className="flex gap-2">
-      {[
-        { label: 'Days', value: timeLeft.days },
-        { label: 'Hrs', value: timeLeft.hours },
-        { label: 'Min', value: timeLeft.minutes },
-        { label: 'Sec', value: timeLeft.seconds },
-      ].map(({ label, value }) => (
-        <div key={label} className="bg-deep-blue/90 text-white rounded-lg px-3 py-2 text-center min-w-[56px]">
-          <div className="text-xl font-bold">{pad(value)}</div>
-          <div className="text-[10px] text-gray-300 uppercase tracking-wide">{label}</div>
-        </div>
-      ))}
-    </div>
-  );
+  if (d > 0) return <span className={className}>{d}d {h}h {m}m</span>;
+  if (h > 0) return <span className={className}>{h}h {m}m {s}s</span>;
+  if (m > 0) return <span className={className}>{m}m {s}s</span>;
+  return <span className={className}>{s}s</span>;
 }

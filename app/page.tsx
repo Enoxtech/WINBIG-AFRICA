@@ -1,510 +1,254 @@
-'use client';
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { motion, useInView } from 'framer-motion';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import Particles from './components/Particles';
-
-const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
-
-const blurDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==';
-
-function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffix?: string; prefix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = end / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) { setCount(end); clearInterval(timer); }
-      else setCount(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, end]);
-
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
-}
-
-function ConfettiTrigger() {
-  const [fired, setFired] = useState(false);
-  useEffect(() => {
-    if (fired || typeof window === 'undefined') return;
-    setTimeout(() => {
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors: ['#D4AF37', '#0B1F3A', '#ffffff', '#FFD700', '#FFC125'] };
-      function shoot() {
-        (window as any).confetti?.({ ...defaults, particleCount: 50, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-        (window as any).confetti?.({ ...defaults, particleCount: 50, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-      }
-      function randomInRange(min: number, max: number) { return Math.random() * (max - min) + min; }
-      const myConfetti = (window as any).confetti;
-      if (myConfetti) { myConfetti.shoot = shoot; myConfetti(); setFired(true); }
-    }, 500);
-  }, [fired]);
-  return null;
-}
+import ClientLayout from './ClientLayout';
+import ClientPageTransition from './components/ClientPageTransition';
+import UrgencyBanner from './components/UrgencyBanner';
+import CountdownTimer from './components/CountdownTimer';
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  return (
+    <ClientLayout>
+      <ClientPageTransition>
+        <UrgencyBanner />
+        <HeroSection />
+        <StatsBar />
+        <HowItWorks />
+        <FeaturedCampaigns />
+        <WinnerTicker />
+        <Testimonials />
+        <CTABanner />
+      </ClientPageTransition>
+    </ClientLayout>
+  );
+}
 
+function HeroSection() {
+  return (
+    <section className="relative overflow-hidden bg-deep-blue pt-12 pb-20">
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-gold rounded-full blur-3xl" />
+      </div>
+      <div className="relative max-w-7xl mx-auto px-4 text-center">
+        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
+          <span className="text-gold text-sm font-bold">🎉</span>
+          <span className="text-white/80 text-sm">Nigeria's Most Trusted Raffle Platform</span>
+        </div>
+        <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight">
+          Win Life-Changing<br />
+          <span className="text-gold">Cash Prizes</span> 🎉
+        </h1>
+        <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">
+          Enter raffles for as little as ₦100. Win millions. New draws every week.
+          Nigeria's biggest raffle community — over 50,000 winners!
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+          <a href="/campaigns" className="bg-gold hover:bg-gold/90 text-deep-blue font-black px-8 py-4 rounded-xl text-lg transition-all hover:scale-105 shadow-lg shadow-gold/25">
+            🎟️ Enter a Raffle Now
+          </a>
+          <a href="/about" className="border border-white/30 hover:border-white/60 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:bg-white/5">
+            How It Works
+          </a>
+        </div>
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 max-w-lg mx-auto">
+          <p className="text-white/60 text-xs mb-2 uppercase tracking-widest font-semibold">Next Draw In</p>
+          <CountdownTimer
+            targetDate={new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()}
+            className="text-white font-black text-2xl md:text-3xl"
+          />
+          <p className="text-white/40 text-xs mt-1">₦5,000,000 Jackpot — Don't Miss Out!</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatsBar() {
   const stats = [
-    { value: 5000000, prefix: 'N', suffix: '+', label: 'Total Won', icon: '🏆' },
-    { value: 25000, suffix: '+', label: 'Active Players', icon: '👥' },
-    { value: 120, suffix: '+', label: 'Campaigns Completed', icon: '🎯' },
-    { value: 98, suffix: '%', label: 'Payout Rate', icon: '⚡' },
+    { value: '50,000+', label: 'Winners', icon: '🏆' },
+    { value: '₦500M+', label: 'Prizes Won', icon: '💰' },
+    { value: '100%', label: 'Verified', icon: '✅' },
+    { value: '24/7', label: 'Support', icon: '💬' },
   ];
+  return (
+    <section className="bg-white border-b border-gray-100 sticky top-[73px] z-30 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <div key={s.label} className="text-center">
+            <div className="text-2xl mb-0.5">{s.icon}</div>
+            <div className="font-black text-deep-blue text-lg">{s.value}</div>
+            <div className="text-gray-400 text-xs">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
+function HowItWorks() {
   const steps = [
-    { num: '01', icon: '👤', title: 'Sign Up', desc: 'Create your free account in seconds. No hidden fees.' },
-    { num: '02', icon: '🎟', title: 'Buy a Ticket', desc: 'Pick a campaign and purchase your raffle ticket(s).' },
-    { num: '03', icon: '⏳', title: 'Wait for Draw', desc: 'Live draws happen weekly. Your name could be next!' },
-    { num: '04', icon: '🎉', title: 'Win & Celebrate', desc: 'Winners are announced instantly. Withdraw winnings fast!' },
+    { n: '01', icon: '🎯', title: 'Pick a Raffle', desc: 'Browse our active campaigns and choose the raffles you want to enter.' },
+    { n: '02', icon: '💳', title: 'Buy Tickets', desc: 'Purchase your tickets securely with card, bank transfer, or USSD.' },
+    { n: '03', icon: '🎲', title: 'Wait for Draw', desc: 'Watch the live draw on our social media. Random & verified!' },
+    { n: '04', icon: '💰', title: 'Win & Celebrate', desc: 'Winners are notified instantly. Your prize, your rules.' },
   ];
-
-  const testimonials = [
-    { name: 'Chioma A.', city: 'Lagos', text: 'I won N500,000 on my third ticket! The thrill is unreal. Already planning my next entry!', avatar: 'C' },
-    { name: 'Emeka N.', city: 'Abuja', text: 'Toyota Camry winner here! I still can\'t believe it. The process was smooth from start to finish.', avatar: 'E' },
-    { name: 'Funke O.', city: 'Ibadan', text: 'Been playing for 6 months and finally won the N1M weekly draw. Thank you WINBIG!', avatar: 'F' },
-  ];
-
   return (
-    <div className="relative overflow-hidden">
-      {mounted && <ConfettiTrigger />}
-
-      {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <Particles />
-        <div className="absolute inset-0 bg-deep-blue" />
-        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.4) 0%, transparent 60%)' }} />
-        <motion.div
-          animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-1/4 left-1/4 w-72 h-72 bg-gold/10 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gold/5 rounded-full blur-3xl"
-        />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8"
-          >
-            <motion.span
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-2 h-2 bg-gold rounded-full"
-            />
-            <span className="text-gold text-sm font-medium">Live Draws Every Week</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.35, duration: 0.7 }}
-            className="text-5xl sm:text-7xl font-black text-white leading-tight mb-4"
-          >
-            Your Dreams Start
-            <br />
-            <span className="bg-gradient-to-r from-gold via-yellow-300 to-gold bg-clip-text text-transparent bg-[length:200%_auto] animate-pulse">
-              With One Ticket
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto mb-10"
-          >
-            Nigeria&apos;s most trusted lottery platform. Win life-changing prizes from as little as N100. New winners every week.
-          </motion.p>
-
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.65, duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link href="/campaigns">
-              <motion.button
-                whileHover={{ scale: 1.06, boxShadow: '0 0 40px rgba(212,175,55,0.5)' }}
-                whileTap={{ scale: 0.96 }}
-                className="relative bg-gold text-deep-blue font-black text-base px-10 py-4 rounded-2xl overflow-hidden group"
-              >
-                <span className="relative z-10">Enter a Campaign</span>
-              </motion.button>
-            </Link>
-            <Link href="/about">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                className="border-2 border-white/30 text-white font-semibold text-base px-10 py-4 rounded-2xl hover:border-gold hover:text-gold transition-all"
-              >
-                How It Works
-              </motion.button>
-            </Link>
-          </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="text-gray-500 text-sm mt-6"
-          >
-            🔒 Secured by Supabase &nbsp;|&nbsp; ⚡ Instant Payouts &nbsp;|&nbsp; 🇳🇬 Made in Nigeria
-          </motion.p>
+    <section className="py-20 bg-light-gray">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-14">
+          <span className="text-gold font-bold text-sm uppercase tracking-widest">Simple Process</span>
+          <h2 className="text-3xl md:text-4xl font-black text-deep-blue mt-2">How It Works</h2>
         </div>
-
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
-            <motion.div
-              animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-3 bg-gold rounded-full"
-            />
-          </div>
-        </motion.div>
-      </section>
-
-      {/* STATS BAR */}
-      <section className="bg-white border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ y: 30, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="text-center"
-              >
-                <div className="text-3xl mb-1">{stat.icon}</div>
-                <div className="text-3xl sm:text-4xl font-black text-deep-blue">
-                  <AnimatedCounter end={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
-                </div>
-                <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {steps.map((step, i) => (
+            <div key={step.n} className="bg-white rounded-2xl p-6 border border-gray-100 text-center relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-deep-blue text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">{step.n}</div>
+              <div className="text-4xl mb-3">{step.icon}</div>
+              <h3 className="font-black text-deep-blue mb-2">{step.title}</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">{step.desc}</p>
+            </div>
+          ))}
         </div>
-      </section>
-
-      {/* LIVE CAMPAIGNS */}
-      <section id="campaigns" className="bg-light-gray py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
-            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Act Now</span>
-            <h2 className="section-title mt-2">Live Campaigns</h2>
-            <p className="text-gray-500 mt-2 max-w-xl mx-auto">Grab your ticket before time runs out. Every draw is live and transparent.</p>
-          </motion.div>
-
-          <CampaignCards />
-
-          <div className="text-center mt-10">
-            <Link href="/campaigns">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                className="bg-deep-blue text-white font-semibold px-8 py-3 rounded-xl hover:bg-deep-blue/90 transition-colors"
-              >
-                View All Campaigns →
-              </motion.button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="bg-deep-blue py-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
-            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Simple Process</span>
-            <h2 className="text-4xl font-bold text-white mt-2">How It Works</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ y: 40, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors"
-              >
-                <div className="text-5xl mb-4">{step.icon}</div>
-                <div className="text-gold font-black text-sm mb-2">{step.num}</div>
-                <h3 className="text-white font-bold text-lg mb-2">{step.title}</h3>
-                <p className="text-gray-400 text-sm">{step.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WINNERS TICKER */}
-      <WinnerTicker />
-
-      {/* TESTIMONIALS */}
-      <section className="bg-white py-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
-            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Real Winners</span>
-            <h2 className="section-title mt-2">What Winners Say</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                initial={{ y: 30, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.12, duration: 0.5 }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-light-gray rounded-2xl p-6 border border-gray-100"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center text-deep-blue font-bold text-sm">{t.avatar}</div>
-                  <div>
-                    <div className="font-semibold text-deep-blue text-sm">{t.name}</div>
-                    <div className="text-gray-400 text-xs">{t.city}</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                <div className="text-gold text-sm mt-3">⭐⭐⭐⭐⭐</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA BANNER */}
-      <section className="bg-deep-blue py-20">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl sm:text-5xl font-black text-white mb-4">
-              Ready to Try Your Luck?
-            </h2>
-            <p className="text-gray-400 text-lg mb-8">Join 25,000+ players who are already winning big. Your turn is next.</p>
-            <Link href="/register">
-              <motion.button
-                whileHover={{ scale: 1.06, boxShadow: '0 0 40px rgba(212,175,55,0.5)' }}
-                whileTap={{ scale: 0.96 }}
-                className="bg-gold text-deep-blue font-black text-lg px-12 py-4 rounded-2xl"
-              >
-                Create Free Account
-              </motion.button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 
-// Campaign Cards with 3D Tilt + Countdown + Lazy Images
-function CampaignCards() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [countdowns, setCountdowns] = useState<Record<number, { days: number; hours: number; mins: number; secs: number }>>({});
-  const [tilt, setTilt] = useState<Record<number, { rotateX: number; rotateY: number }>>({});
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`)
-      .then(r => r.json())
-      .then(d => setCampaigns(Array.isArray(d) ? d.slice(0, 3) : []))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newCountdowns: Record<number, any> = {};
-      campaigns.forEach(c => {
-        const diff = new Date(c.end_date).getTime() - Date.now();
-        if (diff <= 0) { newCountdowns[c.id] = { days: 0, hours: 0, mins: 0, secs: 0 }; return; }
-        newCountdowns[c.id] = {
-          days: Math.floor(diff / 86400000),
-          hours: Math.floor((diff % 86400000) / 3600000),
-          mins: Math.floor((diff % 3600000) / 60000),
-          secs: Math.floor((diff % 60000) / 1000),
-        };
-      });
-      setCountdowns(newCountdowns);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [campaigns]);
-
-  const handleMouseMove = (id: number, e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt(prev => ({ ...prev, [id]: { rotateX: -y * 12, rotateY: x * 12 } }));
-  };
-  const handleMouseLeave = (id: number) => {
-    setTilt(prev => ({ ...prev, [id]: { rotateX: 0, rotateY: 0 } }));
-  };
-
-  if (!campaigns.length) return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2xl h-96 animate-pulse border border-gray-100" />)}
-    </div>
-  );
-
+function FeaturedCampaigns() {
+  const campaigns = [
+    { id: '1', title: '₦5,000,000 Mega Jackpot', prize: '₦5,000,000', price: '₦500', sold: 8432, total: 10000, end: '2026-03-25T23:59:59Z', badge: 'JACKPOT', img: '💎' },
+    { id: '2', title: '₦500,000 Weekly Raffle', prize: '₦500,000', price: '₦200', sold: 3201, total: 5000, end: '2026-03-23T23:59:59Z', badge: 'HOT', img: '🔥' },
+    { id: '3', title: '₦100,000 Daily Draw', prize: '₦100,000', price: '₦100', sold: 1892, total: 2000, end: '2026-03-22T23:59:59Z', badge: null, img: '🎯' },
+  ];
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {campaigns.map((c, i) => {
-        const pct = Math.round((c.sold_tickets / c.total_tickets) * 100);
-        const cd = countdowns[c.id] || { days: 0, hours: 0, mins: 0, secs: 0 };
-        const isExpired = new Date(c.end_date).getTime() <= Date.now();
-        const t = tilt[c.id] || { rotateX: 0, rotateY: 0 };
-
-        return (
-          <div
-            key={c.id}
-            onMouseMove={(e) => handleMouseMove(c.id, e)}
-            onMouseLeave={() => handleMouseLeave(c.id)}
-            style={{ perspective: '800px' }}
-          >
-            <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              animate={{ rotateX: t.rotateX, rotateY: t.rotateY }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl transition-shadow origin-center"
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <div className="h-44 bg-gray-200 relative overflow-hidden">
-                <Image
-                  src={c.image_url || '/placeholder.jpg'}
-                  alt={c.title}
-                  fill
-                  className="object-cover"
-                  placeholder="blur"
-                  blurDataURL={blurDataURL}
-                />
-                {c.status === 'active' && (
-                  <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
-                  </span>
-                )}
-                {pct > 85 && (
-                  <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                    Almost Full!
-                  </span>
-                )}
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-deep-blue text-base mb-1">{c.title}</h3>
-
-                {/* Countdown Timer */}
-                {isExpired ? (
-                  <div className="text-red-500 font-bold text-sm mb-2 animate-pulse">🎯 DRAW LIVE!</div>
-                ) : (
-                  <div className="flex gap-1 text-xs mb-2">
-                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{cd.days}d</span>
-                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{String(cd.hours).padStart(2,'0')}h</span>
-                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{String(cd.mins).padStart(2,'0')}m</span>
-                    <span className="bg-gold text-deep-blue px-1.5 py-0.5 rounded font-bold">{String(cd.secs).padStart(2,'0')}s</span>
-                  </div>
-                )}
-
-                {/* Progress bar */}
-                <div className="w-full h-2 bg-gray-100 rounded-full mb-3 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${pct}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, delay: i * 0.1 }}
-                    className="h-full bg-gradient-to-r from-gold to-yellow-400 rounded-full"
-                  />
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <span className="text-gold font-bold text-sm uppercase tracking-widest">Limited Time</span>
+            <h2 className="text-3xl md:text-4xl font-black text-deep-blue mt-2">Active Campaigns</h2>
+          </div>
+          <a href="/campaigns" className="text-gold font-bold hover:underline text-sm">View All →</a>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {campaigns.map((c) => {
+            const pct = Math.round((c.sold / c.total) * 100);
+            return (
+              <div key={c.id} className="bg-light-gray rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all hover:-translate-y-1">
+                <div className="h-40 bg-gradient-to-br from-deep-blue to-deep-blue/80 flex items-center justify-center text-6xl relative">
+                  {c.img}
+                  {c.badge && (
+                    <span className={`absolute top-3 right-3 text-xs font-black px-3 py-1 rounded-full ${
+                      c.badge === 'JACKPOT' ? 'bg-gold text-deep-blue' : 'bg-red-500 text-white'
+                    }`}>
+                      {c.badge === 'JACKPOT' ? '💎 JACKPOT' : '🔥 HOT'}
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Ticket: <strong className="text-deep-blue">N{c.ticket_price.toLocaleString()}</strong></span>
-                  <Link href={`/campaigns/${c.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-gold text-deep-blue font-semibold text-xs px-4 py-2 rounded-xl"
-                    >
+                <div className="p-5">
+                  <h3 className="font-black text-deep-blue text-lg mb-1">{c.title}</h3>
+                  <p className="text-gold font-black text-2xl mb-1">{c.prize}</p>
+                  <p className="text-gray-400 text-sm mb-3">Ticket: {c.price}</p>
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>{c.sold} sold</span>
+                      <span>{pct}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-gold to-gold/70 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-xs">Ends <CountdownTimer targetDate={c.end} className="text-gray-600 font-semibold text-xs" /></span>
+                    <a href={`/campaigns/${c.id}`} className="bg-deep-blue text-white font-bold px-4 py-2 rounded-xl text-sm hover:bg-deep-blue/90 transition-colors">
                       Enter →
-                    </motion.button>
-                  </Link>
+                    </a>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
-        );
-      })}
-    </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 
-// Winner Ticker
 function WinnerTicker() {
   const winners = [
-    { name: 'Chioma A.', prize: 'N500,000', city: 'Lagos', time: '2h ago' },
-    { name: 'Emeka N.', prize: 'Toyota Camry 2025', city: 'Abuja', time: '5h ago' },
-    { name: 'Funke O.', prize: 'N1,000,000', city: 'Ibadan', time: '1d ago' },
-    { name: 'Segun K.', prize: 'iPhone 16 Pro Max', city: 'Port Harcourt', time: '1d ago' },
-    { name: 'Aisha M.', prize: 'N250,000', city: 'Kano', time: '2d ago' },
-    { name: 'Olumide T.', prize: 'N5,000,000', city: 'Lagos', time: '3d ago' },
+    '🎉 Chioma A. just won ₦5,000,000!',
+    '🏆 Emeka N. won ₦500,000 on Weekly Raffle!',
+    '🎊 Fatima K. won ₦100,000 Daily Draw!',
+    '⭐ Ibrahim S. won ₦50,000 Bonus Draw!',
+    '🎉 Adebayo M. won ₦250,000 Mega Jackpot!',
   ];
-
   return (
-    <div className="bg-gold/10 border-y border-gold/20 py-6 overflow-hidden">
-      <div className="flex gap-8 animate-[scroll_30s_linear_infinite] whitespace-nowrap">
+    <section className="py-12 bg-deep-blue overflow-hidden">
+      <div className="flex items-center gap-8 animate-ticker">
         {[...winners, ...winners].map((w, i) => (
-          <span key={i} className="inline-flex items-center gap-2 text-deep-blue font-medium text-sm">
-            🎊 <strong>{w.name}</strong> from {w.city} won <strong>{w.prize}</strong>
-            <span className="text-gray-400 text-xs">• {w.time}</span>
-            <span className="mx-4 text-gold">⭐</span>
-          </span>
+          <span key={i} className="whitespace-nowrap text-white/80 font-semibold text-sm">{w}</span>
         ))}
       </div>
       <style>{`
-        @keyframes scroll {
+        @keyframes ticker {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
+        .animate-ticker { animation: ticker 30s linear infinite; }
       `}</style>
-    </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  const reviews = [
+    { name: 'Chioma A.', city: 'Lagos', text: 'I never thought I could win anything online. WINBIG changed my life — won ₦5M and it was credited same day!', stars: 5, icon: '👩🏿‍💼' },
+    { name: 'Emeka O.', city: 'Abuja', text: 'The weekly raffles are legit. Been playing for 3 months and finally won ₦500K. Customer support is amazing too!', stars: 5, icon: '👨🏿‍🔧' },
+    { name: 'Fatima K.', city: 'Kano', text: 'Easy to use, fast payouts, real winners. I tell everyone about WINBIG. This platform is a game-changer for Nigeria!', stars: 5, icon: '👩🏿‍🎓' },
+  ];
+  return (
+    <section className="py-20 bg-light-gray">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-14">
+          <span className="text-gold font-bold text-sm uppercase tracking-widest">Real Winners</span>
+          <h2 className="text-3xl md:text-4xl font-black text-deep-blue mt-2">What Winners Say</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {reviews.map((r) => (
+            <div key={r.name} className="bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">{r.icon}</span>
+                <div>
+                  <div className="font-bold text-deep-blue text-sm">{r.name}</div>
+                  <div className="text-gray-400 text-xs">{r.city}</div>
+                </div>
+                <div className="ml-auto text-gold text-sm">{'★'.repeat(r.stars)}</div>
+              </div>
+              <p className="text-gray-500 text-sm leading-relaxed">"{r.text}"</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CTABanner() {
+  return (
+    <section className="py-20 bg-gradient-to-br from-deep-blue via-deep-blue to-green-900 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gold rounded-full blur-3xl" />
+      </div>
+      <div className="relative max-w-3xl mx-auto px-4 text-center">
+        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">Ready to Try Your Luck?</h2>
+        <p className="text-white/70 text-lg mb-8">Join 50,000+ Nigerians already winning on WINBIG. Your first ticket could change everything.</p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/campaigns" className="bg-gold hover:bg-gold/90 text-deep-blue font-black px-8 py-4 rounded-xl text-lg transition-all hover:scale-105">
+            🎟️ Get Your First Ticket
+          </a>
+          <a href="/winners" className="border border-white/30 hover:border-white text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:bg-white/5">
+            🏆 See Past Winners
+          </a>
+        </div>
+      </div>
+    </section>
   );
 }
