@@ -1,10 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserTickets, getCampaign } from '../api';
+import { getMyTickets, getCampaignById } from '../api';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 
 const BADGES = [
   { id: 'first_ticket', icon: '🎫', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any) => s.total >= 1 },
