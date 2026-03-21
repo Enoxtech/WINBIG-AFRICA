@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-deep-blue: #0B1F3A;
+  --color-matte-black: #0A0A0A;
+  --color-gold: #D4AF37;
+  --color-light-gray: #F8F9FB;
+  --color-dark-text: #1A1A1A;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #F8F9FB;
+  color: #1A1A1A;
+}
+
+@layer components {
+  .btn-primary {
+    background-color: #D4AF37;
+    color: #0B1F3A;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(212,175,55,0.25);
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background-color: #eab308;
+  }
+
+  .btn-secondary {
+    background-color: #0B1F3A;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-secondary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-outline {
+    border: 2px solid #0B1F3A;
+    color: #0B1F3A;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    transition: all 0.2s;
+    background: transparent;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    background-color: #0B1F3A;
+    color: white;
+  }
+
+  .card {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    padding: 1.5rem;
+    border: 1px solid #f3f4f6;
+  }
+
+  .input-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .input-field:focus {
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.2);
+  }
+
+  .section-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #0B1F3A;
+  }
+  @media (min-width: 768px) {
+    .section-title {
+      font-size: 2.25rem;
+    }
+  }
+
+  .gold-gradient {
+    background: linear-gradient(to right, #D4AF37, #fbbf24, #D4AF37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37, #F5D98E, #D4AF37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
