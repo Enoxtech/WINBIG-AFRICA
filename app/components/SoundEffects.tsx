@@ -104,3 +104,5 @@ export function useSoundEffects() {
   }
   return context;
 }
+
+// Force redeploy - Vercel cache buster: 2026-03-21-19-25-00
