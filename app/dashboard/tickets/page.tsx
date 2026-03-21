@@ -1,8 +1,8 @@
 'use client';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getMyTickets } from '../api';
+import { useAuth } from '../../context/AuthContext';
+import { getMyTickets } from '../../api';
 
 export default function MyTickets() {
   const { user } = useAuth();

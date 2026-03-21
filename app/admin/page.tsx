@@ -9,10 +9,9 @@ import { useRouter } from 'next/navigation';
 import {
   getAdminDashboard,
   getAdminUsers,
-  getAdminCampaigns,
-  createAdminCampaign,
-  drawWinner,
   getCampaigns,
+  createCampaign,
+  triggerDraw,
 } from '../api';
 
 interface DashboardStats { total_users: number; total_campaigns: number; total_tickets: number; total_revenue: number; }
@@ -50,7 +49,7 @@ export default function AdminPage() {
     try {
       const [s, c, u] = await Promise.all([
         getAdminDashboard(token),
-        getAdminCampaigns(token),
+        getCampaigns(),
         getAdminUsers(token),
       ]);
       setStats(s || { total_users: 0, total_campaigns: 0, total_tickets: 0, total_revenue: 0 });
@@ -93,7 +92,7 @@ export default function AdminPage() {
     if (!confirm('Trigger the draw for this campaign? A random winner will be selected.')) return;
     setDrawLoading(campaignId);
     try {
-      await drawWinner(campaignId, token);
+      await triggerDraw(campaignId, token);
       setMsg('🏆 Draw completed successfully!');
       loadData();
     } catch {
