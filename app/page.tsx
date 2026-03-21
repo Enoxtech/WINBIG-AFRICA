@@ -5,6 +5,7 @@ import { motion, useInView } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Particles from './components/Particles';
+import UrgencyBanner from './components/UrgencyBanner';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
 
@@ -76,7 +77,7 @@ export default function HomePage() {
   return (
     <div className="relative overflow-hidden">
       {mounted && <ConfettiTrigger />}
-
+      <UrgencyBanner />
       {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <Particles />
