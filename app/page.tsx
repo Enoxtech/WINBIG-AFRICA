@@ -3,8 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import Particles from './components/Particles';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
+
+const blurDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==';
 
 function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0);
@@ -34,8 +38,8 @@ function ConfettiTrigger() {
     setTimeout(() => {
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors: ['#D4AF37', '#0B1F3A', '#ffffff', '#FFD700', '#FFC125'] };
       function shoot() {
-        confetti({ ...defaults, particleCount: 50, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-        confetti({ ...defaults, particleCount: 50, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        (window as any).confetti?.({ ...defaults, particleCount: 50, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        (window as any).confetti?.({ ...defaults, particleCount: 50, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
       }
       function randomInRange(min: number, max: number) { return Math.random() * (max - min) + min; }
       const myConfetti = (window as any).confetti;
@@ -50,35 +54,34 @@ export default function HomePage() {
   useEffect(() => { setMounted(true); }, []);
 
   const stats = [
-    { value: 5000000, prefix: '₦', suffix: '+', label: 'Total Won', icon: '💰' },
+    { value: 5000000, prefix: 'N', suffix: '+', label: 'Total Won', icon: '🏆' },
     { value: 25000, suffix: '+', label: 'Active Players', icon: '👥' },
     { value: 120, suffix: '+', label: 'Campaigns Completed', icon: '🎯' },
-    { value: 98, suffix: '%', label: 'Payout Rate', icon: '✅' },
+    { value: 98, suffix: '%', label: 'Payout Rate', icon: '⚡' },
   ];
 
   const steps = [
-    { num: '01', icon: '📋', title: 'Sign Up', desc: 'Create your free account in seconds. No hidden fees.' },
-    { num: '02', icon: '🎟️', title: 'Buy a Ticket', desc: 'Pick a campaign and purchase your raffle ticket(s).' },
-    { num: '03', icon: '🎉', title: 'Wait for Draw', desc: 'Live draws happen weekly. Your name could be next!' },
-    { num: '04', icon: '🏆', title: 'Win & Celebrate', desc: 'Winners are announced instantly. Withdraw winnings fast!' },
+    { num: '01', icon: '👤', title: 'Sign Up', desc: 'Create your free account in seconds. No hidden fees.' },
+    { num: '02', icon: '🎟', title: 'Buy a Ticket', desc: 'Pick a campaign and purchase your raffle ticket(s).' },
+    { num: '03', icon: '⏳', title: 'Wait for Draw', desc: 'Live draws happen weekly. Your name could be next!' },
+    { num: '04', icon: '🎉', title: 'Win & Celebrate', desc: 'Winners are announced instantly. Withdraw winnings fast!' },
   ];
 
   const testimonials = [
-    { name: 'Chioma A.', city: 'Lagos', text: 'I won ₦500,000 on my third ticket! The thrill is unreal. Already planning my next entry 😍', avatar: 'C' },
-    { name: 'Emeka N.', city: 'Abuja', text: 'Toyota Camry winner here! I still can\'t believe it. The process was smooth from start to finish. 🚗', avatar: 'E' },
-    { name: 'Funke O.', city: 'Ibadan', text: 'Been playing for 6 months and finally won the ₦1M weekly draw. Thank you WINBIG! 🙌', avatar: 'F' },
+    { name: 'Chioma A.', city: 'Lagos', text: 'I won N500,000 on my third ticket! The thrill is unreal. Already planning my next entry!', avatar: 'C' },
+    { name: 'Emeka N.', city: 'Abuja', text: 'Toyota Camry winner here! I still can\'t believe it. The process was smooth from start to finish.', avatar: 'E' },
+    { name: 'Funke O.', city: 'Ibadan', text: 'Been playing for 6 months and finally won the N1M weekly draw. Thank you WINBIG!', avatar: 'F' },
   ];
 
   return (
     <div className="relative overflow-hidden">
       {mounted && <ConfettiTrigger />}
 
-      {/* ── HERO ── */}
+      {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background layers */}
+        <Particles />
         <div className="absolute inset-0 bg-deep-blue" />
         <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.4) 0%, transparent 60%)' }} />
-        {/* Animated orbs */}
         <motion.div
           animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.1, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
@@ -91,7 +94,6 @@ export default function HomePage() {
         />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-          {/* Badge */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -106,7 +108,6 @@ export default function HomePage() {
             <span className="text-gold text-sm font-medium">Live Draws Every Week</span>
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -126,10 +127,9 @@ export default function HomePage() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto mb-10"
           >
-            Nigeria&apos;s most trusted lottery platform. Win life-changing prizes from as little as ₦100. New winners every week.
+            Nigeria&apos;s most trusted lottery platform. Win life-changing prizes from as little as N100. New winners every week.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -143,12 +143,6 @@ export default function HomePage() {
                 className="relative bg-gold text-deep-blue font-black text-base px-10 py-4 rounded-2xl overflow-hidden group"
               >
                 <span className="relative z-10">Enter a Campaign</span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-yellow-300 via-gold to-yellow-300"
-                  animate={{ x: ['-100%', '100%'] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                  style={{ width: '100%', backgroundSize: '200% 100%' }}
-                />
               </motion.button>
             </Link>
             <Link href="/about">
@@ -162,7 +156,6 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          {/* Trust signals */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -173,7 +166,6 @@ export default function HomePage() {
           </motion.p>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
@@ -189,7 +181,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* ── STATS BAR ── */}
+      {/* STATS BAR */}
       <section className="bg-white border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -213,7 +205,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── LIVE CAMPAIGNS ── */}
+      {/* LIVE CAMPAIGNS */}
       <section id="campaigns" className="bg-light-gray py-20">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -243,7 +235,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
+      {/* HOW IT WORKS */}
       <section id="how-it-works" className="bg-deep-blue py-20">
         <div className="max-w-6xl mx-auto px-4">
           <motion.div
@@ -277,10 +269,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── WINNERS TICKER ── */}
+      {/* WINNERS TICKER */}
       <WinnerTicker />
 
-      {/* ── TESTIMONIALS ── */}
+      {/* TESTIMONIALS */}
       <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-4">
           <motion.div
@@ -312,14 +304,14 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-gray-600 text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                <div className="text-gold text-sm mt-3">★★★★★</div>
+                <div className="text-gold text-sm mt-3">⭐⭐⭐⭐⭐</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA BANNER ── */}
+      {/* CTA BANNER */}
       <section className="bg-deep-blue py-20">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div
@@ -347,22 +339,50 @@ export default function HomePage() {
   );
 }
 
-// ── Campaign Cards ──
+// Campaign Cards with 3D Tilt + Countdown + Lazy Images
 function CampaignCards() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [countdowns, setCountdowns] = useState<Record<number, { days: number; hours: number; mins: number; secs: number }>>({});
+  const [tilt, setTilt] = useState<Record<number, { rotateX: number; rotateY: number }>>({});
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/campaigns')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`)
       .then(r => r.json())
       .then(d => setCampaigns(Array.isArray(d) ? d.slice(0, 3) : []))
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newCountdowns: Record<number, any> = {};
+      campaigns.forEach(c => {
+        const diff = new Date(c.end_date).getTime() - Date.now();
+        if (diff <= 0) { newCountdowns[c.id] = { days: 0, hours: 0, mins: 0, secs: 0 }; return; }
+        newCountdowns[c.id] = {
+          days: Math.floor(diff / 86400000),
+          hours: Math.floor((diff % 86400000) / 3600000),
+          mins: Math.floor((diff % 3600000) / 60000),
+          secs: Math.floor((diff % 60000) / 1000),
+        };
+      });
+      setCountdowns(newCountdowns);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [campaigns]);
+
+  const handleMouseMove = (id: number, e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt(prev => ({ ...prev, [id]: { rotateX: -y * 12, rotateY: x * 12 } }));
+  };
+  const handleMouseLeave = (id: number) => {
+    setTilt(prev => ({ ...prev, [id]: { rotateX: 0, rotateY: 0 } }));
+  };
+
   if (!campaigns.length) return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="bg-white rounded-2xl h-80 animate-pulse border border-gray-100" />
-      ))}
+      {[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2xl h-96 animate-pulse border border-gray-100" />)}
     </div>
   );
 
@@ -370,73 +390,102 @@ function CampaignCards() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {campaigns.map((c, i) => {
         const pct = Math.round((c.sold_tickets / c.total_tickets) * 100);
-        const ends = new Date(c.end_date);
-        const days = Math.max(0, Math.ceil((ends.getTime() - Date.now()) / 86400000));
+        const cd = countdowns[c.id] || { days: 0, hours: 0, mins: 0, secs: 0 };
+        const isExpired = new Date(c.end_date).getTime() <= Date.now();
+        const t = tilt[c.id] || { rotateX: 0, rotateY: 0 };
+
         return (
-          <motion.div
+          <div
             key={c.id}
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1 }}
-            whileHover={{ y: -6, transition: { duration: 0.2 } }}
-            className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-shadow"
+            onMouseMove={(e) => handleMouseMove(c.id, e)}
+            onMouseLeave={() => handleMouseLeave(c.id)}
+            style={{ perspective: '800px' }}
           >
-            <div className="h-44 bg-gray-200 relative overflow-hidden">
-              <img src={c.image_url} alt={c.title} className="w-full h-full object-cover" />
-              {c.status === 'active' && (
-                <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                  🔴 LIVE
-                </span>
-              )}
-              {pct > 85 && (
-                <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                  Almost Full!
-                </span>
-              )}
-            </div>
-            <div className="p-5">
-              <h3 className="font-bold text-deep-blue text-base mb-1">{c.title}</h3>
-              <p className="text-gray-400 text-xs mb-3">{pct}% tickets sold · {days}d left</p>
-              {/* Progress bar */}
-              <div className="w-full h-2 bg-gray-100 rounded-full mb-3 overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${pct}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, delay: i * 0.1 }}
-                  className="h-full bg-gradient-to-r from-gold to-yellow-400 rounded-full"
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              animate={{ rotateX: t.rotateX, rotateY: t.rotateY }}
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+              className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl transition-shadow origin-center"
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="h-44 bg-gray-200 relative overflow-hidden">
+                <Image
+                  src={c.image_url || '/placeholder.jpg'}
+                  alt={c.title}
+                  fill
+                  className="object-cover"
+                  placeholder="blur"
+                  blurDataURL={blurDataURL}
                 />
+                {c.status === 'active' && (
+                  <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
+                  </span>
+                )}
+                {pct > 85 && (
+                  <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    Almost Full!
+                  </span>
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Ticket: <strong className="text-deep-blue">₦{c.ticket_price.toLocaleString()}</strong></span>
-                <Link href={`/campaigns/${c.id}`}>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-gold text-deep-blue font-semibold text-xs px-4 py-2 rounded-xl"
-                  >
-                    Enter →
-                  </motion.button>
-                </Link>
+              <div className="p-5">
+                <h3 className="font-bold text-deep-blue text-base mb-1">{c.title}</h3>
+
+                {/* Countdown Timer */}
+                {isExpired ? (
+                  <div className="text-red-500 font-bold text-sm mb-2 animate-pulse">🎯 DRAW LIVE!</div>
+                ) : (
+                  <div className="flex gap-1 text-xs mb-2">
+                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{cd.days}d</span>
+                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{String(cd.hours).padStart(2,'0')}h</span>
+                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{String(cd.mins).padStart(2,'0')}m</span>
+                    <span className="bg-gold text-deep-blue px-1.5 py-0.5 rounded font-bold">{String(cd.secs).padStart(2,'0')}s</span>
+                  </div>
+                )}
+
+                {/* Progress bar */}
+                <div className="w-full h-2 bg-gray-100 rounded-full mb-3 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: `${pct}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, delay: i * 0.1 }}
+                    className="h-full bg-gradient-to-r from-gold to-yellow-400 rounded-full"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Ticket: <strong className="text-deep-blue">N{c.ticket_price.toLocaleString()}</strong></span>
+                  <Link href={`/campaigns/${c.id}`}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-gold text-deep-blue font-semibold text-xs px-4 py-2 rounded-xl"
+                    >
+                      Enter →
+                    </motion.button>
+                  </Link>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         );
       })}
     </div>
   );
 }
 
-// ── Winner Ticker ──
+// Winner Ticker
 function WinnerTicker() {
   const winners = [
-    { name: 'Chioma A.', prize: '₦500,000', city: 'Lagos', time: '2h ago' },
+    { name: 'Chioma A.', prize: 'N500,000', city: 'Lagos', time: '2h ago' },
     { name: 'Emeka N.', prize: 'Toyota Camry 2025', city: 'Abuja', time: '5h ago' },
-    { name: 'Funke O.', prize: '₦1,000,000', city: 'Ibadan', time: '1d ago' },
+    { name: 'Funke O.', prize: 'N1,000,000', city: 'Ibadan', time: '1d ago' },
     { name: 'Segun K.', prize: 'iPhone 16 Pro Max', city: 'Port Harcourt', time: '1d ago' },
-    { name: 'Aisha M.', prize: '₦250,000', city: 'Kano', time: '2d ago' },
-    { name: 'Olumide T.', prize: '₦5,000,000', city: 'Lagos', time: '3d ago' },
+    { name: 'Aisha M.', prize: 'N250,000', city: 'Kano', time: '2d ago' },
+    { name: 'Olumide T.', prize: 'N5,000,000', city: 'Lagos', time: '3d ago' },
   ];
 
   return (
@@ -444,9 +493,9 @@ function WinnerTicker() {
       <div className="flex gap-8 animate-[scroll_30s_linear_infinite] whitespace-nowrap">
         {[...winners, ...winners].map((w, i) => (
           <span key={i} className="inline-flex items-center gap-2 text-deep-blue font-medium text-sm">
-            🏆 <strong>{w.name}</strong> from {w.city} won <strong>{w.prize}</strong>
-            <span className="text-gray-400 text-xs">· {w.time}</span>
-            <span className="mx-4 text-gold">✦</span>
+            🎊 <strong>{w.name}</strong> from {w.city} won <strong>{w.prize}</strong>
+            <span className="text-gray-400 text-xs">• {w.time}</span>
+            <span className="mx-4 text-gold">⭐</span>
           </span>
         ))}
       </div>
