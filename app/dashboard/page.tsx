@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserTickets, getCampaign } from '../../api';
-import { useAuth } from '../../context/AuthContext';
+import { getUserTickets, getCampaign } from '../api';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
