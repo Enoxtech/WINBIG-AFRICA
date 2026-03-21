@@ -1,141 +1,186 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => { setHydrated(true); }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
-    { href: '/campaigns', label: 'Campaigns' },
+    { href: '/#campaigns', label: 'Campaigns' },
+    { href: '/#how-it-works', label: 'How It Works' },
     { href: '/about', label: 'About' },
-    { href: '/legal/terms', label: 'Terms' },
   ];
 
-  const isActive = (href: string) => pathname === href;
-
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <motion.nav
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-deep-blue/95 backdrop-blur-md shadow-lg shadow-black/20 py-2'
+          : 'bg-transparent py-4'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 bg-gradient-to-br from-gold to-yellow-500 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-md group-hover:scale-105 transition-transform">
-              W
-            </div>
-            <div>
-              <span className="font-extrabold text-deep-blue text-lg leading-none">WINBIG</span>
-              <span className="text-gold font-bold text-lg leading-none ml-1">AFRICA</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2 group">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+              className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-lg shadow-gold/30 group-hover:shadow-gold/50 transition-shadow"
+            >
+              <span className="text-deep-blue font-black text-lg">W</span>
+            </motion.div>
+            <span className="font-black text-xl text-white hidden sm:block">
+              WIN<span className="text-gold">BIG</span> <span className="text-gold">AFRICA</span>
+            </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  isActive(link.href)
-                    ? 'text-deep-blue bg-blue-50'
-                    : 'text-gray-500 hover:text-deep-blue hover:bg-gray-50'
-                }`}
+                className="text-gray-300 hover:text-gold transition-colors text-sm font-medium relative group"
               >
                 {link.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold group-hover:w-full transition-all duration-300" />
               </Link>
             ))}
-          </nav>
+          </div>
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
+            {hydrated && user ? (
               <>
-                <Link
-                  href={user.role === 'admin' ? '/admin' : '/dashboard'}
-                  className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-deep-blue transition-colors"
-                >
-                  Dashboard
+                <Link href="/dashboard">
+                  <motion.span
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-gray-300 hover:text-gold transition-colors text-sm font-medium"
+                  >
+                    Dashboard
+                  </motion.span>
                 </Link>
+                <span className="text-gray-600">|</span>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-red-500 transition-colors"
+                  className="text-gray-300 hover:text-red-400 transition-colors text-sm font-medium"
                 >
                   Logout
                 </button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="w-8 h-8 bg-gold rounded-full flex items-center justify-center text-deep-blue font-bold text-xs"
+                >
+                  {user.name?.[0]?.toUpperCase() || 'U'}
+                </motion.div>
               </>
-            ) : (
+            ) : hydrated ? (
               <>
-                <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-deep-blue transition-colors">
-                  Login
+                <Link href="/login">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-gray-300 hover:text-gold transition-colors text-sm font-medium"
+                  >
+                    Log In
+                  </motion.button>
                 </Link>
-                <Link href="/register" className="btn-primary text-sm py-2 px-4">
-                  Get Started
+                <Link href="/register">
+                  <motion.button
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(212,175,55,0.4)' }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-gold text-deep-blue font-semibold text-sm px-5 py-2 rounded-xl transition-all"
+                  >
+                    Sign Up
+                  </motion.button>
                 </Link>
               </>
-            )}
+            ) : null}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Hamburger */}
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden text-white p-2"
+            aria-label="Toggle menu"
           >
-            {menuOpen ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
+            <div className="w-6 h-5 flex flex-col justify-between">
+              <motion.span
+                animate={mobileOpen ? { rotate: 45, y: 9 } : { rotate: 0, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-0.5 bg-white origin-center"
+              />
+              <motion.span
+                animate={mobileOpen ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-0.5 bg-white"
+              />
+              <motion.span
+                animate={mobileOpen ? { rotate: -45, y: -9 } : { rotate: 0, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-0.5 bg-white origin-center"
+              />
+            </div>
           </button>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className={`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                isActive(link.href)
-                  ? 'text-deep-blue bg-blue-50'
-                  : 'text-gray-500 hover:text-deep-blue hover:bg-gray-50'
-              }`}
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="md:hidden overflow-hidden bg-deep-blue/95 backdrop-blur-md rounded-b-2xl mt-2"
             >
-              {link.label}
-            </Link>
-          ))}
-          <div className="pt-3 border-t border-gray-100 space-y-2">
-            {user ? (
-              <>
-                <Link href={user.role === 'admin' ? '/admin' : '/dashboard'} onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm font-medium text-gray-500 hover:text-deep-blue">
-                  Dashboard
-                </Link>
-                <button onClick={() => { logout(); setMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-gray-500 hover:text-red-500">
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm font-medium text-gray-500 hover:text-deep-blue">
-                  Login
-                </Link>
-                <Link href="/register" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm font-medium bg-deep-blue text-white rounded-xl text-center">
-                  Get Started
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </header>
+              <div className="px-4 py-6 space-y-4">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block text-gray-300 hover:text-gold transition-colors font-medium"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <div className="border-t border-gray-700 pt-4 space-y-3">
+                  {hydrated && user ? (
+                    <>
+                      <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="block text-gold font-medium">Dashboard</Link>
+                      <button onClick={() => { logout(); setMobileOpen(false); }} className="text-red-400 text-sm">Logout</button>
+                    </>
+                  ) : hydrated ? (
+                    <>
+                      <Link href="/login" onClick={() => setMobileOpen(false)} className="block text-gray-300 font-medium">Log In</Link>
+                      <Link href="/register" onClick={() => setMobileOpen(false)} className="block bg-gold text-deep-blue font-semibold text-center py-2.5 rounded-xl">Sign Up</Link>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.nav>
   );
 }
