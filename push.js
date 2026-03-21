@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const TOKEN = 'vcp_4OpD1lsLgewbHhhM9o33e9ROcWpN8CRsZLlwYyFm90IgDMTYLB3GUn7D';
+const TOKEN = 'vcp_5JiTBp9WwlqqIIpqvwxLqM5yOUwMaiGCdw2zKYdGDR8lvk61FB2F5shx';
 const OWNER = 'WINBIG-AFRICA';
 const REPO = 'wingit-frontend';
 const BRANCH = 'main';
