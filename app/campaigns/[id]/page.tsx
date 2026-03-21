@@ -205,7 +205,7 @@ export default function CampaignDetailPage() {
               {campaign.status === 'active' && (
                 <div className="mb-6">
                   <div className="text-sm text-gray-500 mb-2">Draw countdown</div>
-                  <CountdownTimer endDate={campaign.end_date} />
+                  <CountdownTimer targetDate={campaign.end_date} />
                 </div>
               )}
 
