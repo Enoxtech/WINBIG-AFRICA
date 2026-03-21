@@ -1,6 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import { getMyTickets } from '../../api';
 
