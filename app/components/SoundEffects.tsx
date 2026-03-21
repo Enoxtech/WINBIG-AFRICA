@@ -1,111 +1,85 @@
 'use client';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useSound } from './SoundContext';
+import { useRef, useState, createContext, useContext, ReactNode } from 'react';
 
-interface SoundEffectsContextType {
+interface SoundContextType {
   playClick: () => void;
-  playSuccess: () => void;
-  playError: () => void;
-  playChaChing: () => void;
+  playWhoosh: () => void;
+  enabled: boolean;
+  setEnabled: (v: boolean) => void;
 }
 
-const SoundEffectsContext = createContext<SoundEffectsContextType | null>(null);
+const SoundContext = createContext<SoundContextType>({
+  playClick: () => {},
+  playWhoosh: () => {},
+  enabled: false,
+  setEnabled: () => {},
+});
 
-export function SoundEffectsProvider({ children }: { children: ReactNode }) {
-  const { soundsEnabled } = useSound();
-  const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
+export function useSound() {
+  return useContext(SoundContext);
+}
 
-  useEffect(() => {
-    if (soundsEnabled && typeof window !== 'undefined') {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      setAudioCtx(ctx);
-      return () => { void ctx.close(); };
+function createOscillatorSound(ctx: AudioContext, type: OscillatorType, freq: number, duration: number, volume = 0.15) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.5, ctx.currentTime + duration);
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+
+export function SoundProvider({ children }: { children: ReactNode }) {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const enabledRef = useRef(false);
+
+  const getCtx = () => {
+    if (!ctxRef.current) {
+      ctxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
-  }, [soundsEnabled]);
+    return ctxRef.current;
+  };
 
   const playClick = () => {
-    if (!soundsEnabled) return;
+    if (!enabledRef.current) return;
     try {
-      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const gain = osc.createGain();
-      osc.connect(gain);
-      gain.connect(osc.destination);
-      gain.gain.setValueAtTime(0.3, osc.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.1);
-      osc.start();
-      osc.stop(osc.currentTime + 0.1);
-      osc.onended = () => osc.close();
+      const ctx = getCtx();
+      createOscillatorSound(ctx, 'sine', 800, 0.08, 0.12);
     } catch {}
   };
 
-  const playSuccess = () => {
-    if (!soundsEnabled) return;
+  const playWhoosh = () => {
+    if (!enabledRef.current) return;
     try {
-      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const gain = osc.createGain();
+      const ctx = getCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
       osc.connect(gain);
-      gain.connect(osc.destination);
-      gain.gain.setValueAtTime(0.3, osc.currentTime);
-      osc.frequency.setValueAtTime(523.25, osc.currentTime);
-      osc.frequency.setValueAtTime(659.25, osc.currentTime + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.3);
+      gain.connect(ctx.destination);
       osc.start();
-      osc.stop(osc.currentTime + 0.3);
-      osc.onended = () => osc.close();
+      osc.stop(ctx.currentTime + 0.2);
     } catch {}
   };
 
-  const playError = () => {
-    if (!soundsEnabled) return;
-    try {
-      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const gain = osc.createGain();
-      osc.connect(gain);
-      gain.connect(osc.destination);
-      gain.gain.setValueAtTime(0.3, osc.currentTime);
-      osc.frequency.setValueAtTime(200, osc.currentTime);
-      osc.frequency.setValueAtTime(150, osc.currentTime + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.3);
-      osc.start();
-      osc.stop(osc.currentTime + 0.3);
-      osc.onended = () => osc.close();
-    } catch {}
-  };
+  const [enabled, setEnabledState] = useState(false);
 
-  const playChaChing = () => {
-    if (!soundsEnabled) return;
-    try {
-      const osc = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const gain = osc.createGain();
-      osc.connect(gain);
-      gain.connect(osc.destination);
-      gain.gain.setValueAtTime(0.4, osc.currentTime);
-      osc.frequency.setValueAtTime(1200, osc.currentTime);
-      osc.frequency.setValueAtTime(1500, osc.currentTime + 0.1);
-      osc.frequency.setValueAtTime(1800, osc.currentTime + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.01, osc.currentTime + 0.4);
-      osc.start();
-      osc.stop(osc.currentTime + 0.4);
-      osc.onended = () => osc.close();
-    } catch {}
+  const setEnabled = (v: boolean) => {
+    enabledRef.current = v;
+    setEnabledState(v);
   };
 
   return (
-    <SoundEffectsContext.Provider value={{ playClick, playSuccess, playError, playChaChing }}>
+    <SoundContext.Provider value={{ playClick, playWhoosh, enabled, setEnabled }}>
       {children}
-    </SoundEffectsContext.Provider>
+    </SoundContext.Provider>
   );
 }
-
-// Backwards compatibility alias
-export const SoundProvider = SoundEffectsProvider;
-
-export function useSoundEffects() {
-  const context = useContext(SoundEffectsContext);
-  if (!context) {
-    return { playClick: () => {}, playSuccess: () => {}, playError: () => {}, playChaChing: () => {} };
-  }
-  return context;
-}
-
-// Force redeploy - Vercel cache buster: 2026-03-21-19-25-00

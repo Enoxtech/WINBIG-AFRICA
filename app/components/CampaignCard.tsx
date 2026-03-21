@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import CountdownTimer from './CountdownTimer';
+import TiltCard from './TiltCard';
 
 interface Campaign {
   id: string;
@@ -51,12 +52,13 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
   const remaining = Math.max(0, campaign.max_tickets - sold);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 group"
-    >
+    <TiltCard className="h-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -4 }}
+        className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 group h-full"
+      >
       <div className="relative h-44 bg-gradient-to-br from-deep-blue to-deep-blue/80 flex items-center justify-center overflow-hidden">
         <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
           {campaign.title.toLowerCase().includes('jackpot') ? '💎' : campaign.title.toLowerCase().includes('weekly') ? '🔥' : '🎯'}
@@ -108,6 +110,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           {isEnded ? '✅ Draw Ended' : '🎟️ Enter Now'}
         </Link>
       </div>
-    </motion.div>
+      </motion.div>
+    </TiltCard>
   );
 }

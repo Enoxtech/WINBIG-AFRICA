@@ -1,63 +1,93 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function CursorTrail() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let animationId: number;
+    const sparks: Spark[] = [];
 
-    const particles: { x: number; y: number; opacity: number; size: number; dx: number; dy: number }[] = [];
-    const MAX = 25;
+    class Spark {
+      x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number;
 
-    function onMove(e: MouseEvent) {
-      for (let i = 0; i < 3; i++) {
-        particles.push({
-          x: e.clientX,
-          y: e.clientY,
-          opacity: 1,
-          size: Math.random() * 4 + 2,
-          dx: (Math.random() - 0.5) * 2,
-          dy: (Math.random() - 0.5) * 2,
-        });
+      constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 3;
+        this.vy = (Math.random() - 0.5) * 3 - 1;
+        this.life = 1;
+        this.maxLife = 30 + Math.random() * 20;
+        this.size = Math.random() * 3 + 1.5;
       }
-      while (particles.length > MAX) particles.shift();
-    }
 
-    function draw() {
-      if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p, i) => {
-        p.x += p.dx;
-        p.y += p.dy;
-        p.opacity -= 0.035;
-        if (p.opacity <= 0) { particles.splice(i, 1); return; }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.08; // slight gravity
+        this.life -= 1 / this.maxLife;
+      }
+
+      draw(ctx: CanvasRenderingContext2D) {
+        const alpha = Math.max(0, this.life);
+        const r = 212, g = 175, b = 55;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212,175,55,${p.opacity})`;
+        ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         ctx.fill();
-      });
-      requestAnimationFrame(draw);
+
+        // Glow
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * alpha * 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha * 0.3})`;
+        ctx.fill();
+      }
     }
 
-    window.addEventListener('mousemove', onMove);
-    draw();
-    return () => window.removeEventListener('mousemove', onMove);
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    let lastEmit = 0;
+    const onMouseMove = (e: MouseEvent) => {
+      const now = Date.now();
+      if (now - lastEmit > 15) {
+        sparks.push(new Spark(e.clientX, e.clientY));
+        lastEmit = now;
+      }
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        sparks[i].update();
+        sparks[i].draw(ctx);
+        if (sparks[i].life <= 0) sparks.splice(i, 1);
+      }
+      animationId = requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMouseMove);
+    };
   }, []);
 
-  if (!mounted) return null;
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-50"
+      className="pointer-events-none fixed inset-0 z-[9998]"
       style={{ mixBlendMode: 'screen' }}
     />
   );

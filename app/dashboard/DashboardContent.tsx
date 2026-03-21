@@ -5,13 +5,13 @@ import { getMyTickets, getCampaign } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 const BADGES = [
-  { id: 'first_ticket', icon: '🎫', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any) => s.total >= 1 },
-  { id: 'first_win', icon: '🎉', title: 'First Win', desc: 'Win your first prize', condition: (s: any) => s.won >= 1 },
-  { id: 'streak_master', icon: '🔥', title: 'Streak Master', desc: '7-day login streak', condition: (s: any) => s.streak >= 7 },
-  { id: 'jackpot_club', icon: '👑', title: 'Jackpot Club', desc: 'Win a mega jackpot', condition: (s: any) => s.jackpot },
-  { id: 'campaign_5', icon: '🎯', title: 'Campaign Pro', desc: 'Enter 5 different campaigns', condition: (s: any) => s.campaigns >= 5 },
-  { id: 'lucky_10', icon: '🍀', title: 'Lucky Soul', desc: 'Purchase 10 tickets at once', condition: (s: any) => s.maxSingle >= 10 },
-  { id: 'vip', icon: '💎', title: 'VIP Member', desc: 'Win 3+ times on WINBIG', condition: (s: any) => s.won >= 3 },
+  { id: 'first_ticket', icon: '🎫', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any, _t: any) => s.total >= 1 },
+  { id: 'first_win', icon: '🎉', title: 'First Win', desc: 'Win your first prize', condition: (s: any, _t: any) => s.won >= 1 },
+  { id: 'streak_master', icon: '🔥', title: 'Streak Master', desc: '7-day login streak', condition: (s: any, _t: any) => s.streak >= 7 },
+  { id: 'jackpot_club', icon: '👑', title: 'Jackpot Club', desc: 'Win a mega jackpot', condition: (s: any, _t: any) => s.jackpot },
+  { id: 'campaign_5', icon: '🎯', title: 'Campaign Pro', desc: 'Enter 5 different campaigns', condition: (s: any, _t: any) => s.campaigns >= 5 },
+  { id: 'lucky_10', icon: '🍀', title: 'Lucky Soul', desc: 'Purchase 10 tickets at once', condition: (s: any, _t: any) => s.maxSingle >= 10 },
+  { id: 'vip', icon: '💎', title: 'VIP Member', desc: 'Win 3+ times on WINBIG', condition: (s: any, _t: any) => s.won >= 3 },
 ];
 
 function playChaChing() {
@@ -308,7 +308,7 @@ export default function DashboardContent() {
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex items-start justify-between mb-8">
             <div>
               <h1 className="text-3xl font-black text-deep-blue">
-                Welcome back, {user?.full_name?.split(' ')[0] || 'Champion'} 👋
+                Welcome back, {user?.name?.split(' ')[0] || 'Champion'} 👋
               </h1>
               <p className="text-gray-500 mt-1">Track your tickets, achievements, and referral earnings.</p>
             </div>
