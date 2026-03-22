@@ -197,10 +197,10 @@ export default function HomePage() {
                 className="text-center"
               >
                 <div className="text-3xl mb-1">{stat.icon}</div>
-                <div className="text-3xl sm:text-4xl font-black text-deep-blue">
+                <div className="text-2xl sm:text-3xl font-black text-deep-blue leading-tight">
                   <AnimatedCounter end={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
+                <div className="text-gray-500 text-xs sm:text-sm font-medium mt-1">{stat.label}</div>
               </motion.div>
             ))}
           </div>
