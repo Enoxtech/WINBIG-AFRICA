@@ -13,7 +13,6 @@ import AffiliateBanner from './components/AffiliateBanner';
 import JackpotSpotlight from './components/JackpotSpotlight';
 import SocialProofCounter from './components/SocialProofCounter';
 import HowItWorks from './components/HowItWorks';
-import FAQSection from './components/FAQSection';
 import AppDownloadBanner from './components/AppDownloadBanner';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
@@ -367,8 +366,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <FAQSection />
-      <AppDownloadBanner />
 
       {/* CTA BANNER */}
       <section className="bg-deep-blue py-20">

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="179" height="40" viewBox="0 0 179 40">
+  <path d="M0 0h179v40H0z" fill="%23000"/>
+  <path d="M15 11h149l-5 18H20l5-18zM59 21h61" fill="%23fff" fill-opacity=".2"/>
+  <text transform="matrix(1 0 0 1 36 26)" font-family="SF Pro Text,Helvetica Neue,Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="%23fff" letter-spacing="-.5">App Store</text>
+</svg>
