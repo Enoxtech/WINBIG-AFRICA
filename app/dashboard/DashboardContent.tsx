@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getMyTickets, getCampaign } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
-import { getMyTickets, getCampaign } from '../api';
 import WalletModal from '../components/WalletModal';
 import WithdrawModal from '../components/WithdrawModal';
 

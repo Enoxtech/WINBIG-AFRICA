@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useWallet } from '../context/WalletContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useWallet } from '../context/WalletContext';
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -11,267 +10,139 @@ interface WithdrawModalProps {
 }
 
 export default function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
-  const { balance, withdraw: requestWithdraw } = useWallet();
   const { user } = useAuth();
-  const [amount, setAmount] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
+  const { balance, refreshWallet } = useWallet();
+  const [amount, setAmount] = useState(1000);
   const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountName, setAccountName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [shake, setShake] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      setAmount('');
-      setAccountNumber('');
-      setBankName('');
-      setError('');
-      setSuccess('');
-      setLoading(false);
-    }
-  }, [isOpen]);
+  if (!isOpen) return null;
 
-  const triggerShake = () => {
-    setShake(true);
-    setTimeout(() => setShake(false), 500);
-  };
-
-  const getEmail = () => {
-    if (user?.email) return user.email;
-    try {
-      const stored = localStorage.getItem('user');
-      if (stored) return JSON.parse(stored).email || '';
-    } catch { /* ignore */ }
-    return '';
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    const numAmount = parseInt(amount.replace(/,/g, ''), 10);
-
-    // Validation
-    if (!numAmount || numAmount < 1000) {
-      setError('Minimum withdrawal is ₦1,000');
-      triggerShake();
+  const handleWithdraw = async () => {
+    if (!user || !bankName || !accountNumber || !accountName) return;
+    if (amount < 1000) {
+      setMessage({ type: 'error', text: 'Minimum withdrawal is ₦1,000' });
       return;
     }
-    if (numAmount > balance) {
-      setError('Insufficient wallet balance');
-      triggerShake();
-      return;
-    }
-    if (!accountNumber || accountNumber.length < 10) {
-      setError('Enter a valid account number');
-      triggerShake();
-      return;
-    }
-    if (!bankName.trim()) {
-      setError('Enter your bank name');
-      triggerShake();
+    if (amount > balance) {
+      setMessage({ type: 'error', text: 'Insufficient balance' });
       return;
     }
 
     setLoading(true);
+    setMessage(null);
 
-    const result = await requestWithdraw(numAmount, accountNumber, bankName);
+    try {
+      const res = await fetch('/api/wallet/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          bankName,
+          accountNumber,
+          accountName,
+        }),
+      });
 
-    if (result.success) {
-      setSuccess(result.message);
-      setTimeout(() => {
-        onClose();
-        setSuccess('');
-      }, 2500);
-    } else {
-      setError(result.message);
-      triggerShake();
+      if (!res.ok) throw new Error('Withdrawal failed');
+
+      setMessage({ type: 'success', text: 'Withdrawal request submitted! You will be contacted shortly.' });
+      setAmount(1000);
+      setBankName('');
+      setAccountNumber('');
+      setAccountName('');
+      refreshWallet();
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to submit withdrawal request' });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
-
-  const formattedBalance = new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 0,
-  }).format(balance);
-
-  const handleAmountChange = (val: string) => {
-    const numeric = val.replace(/[^0-9]/g, '');
-    setAmount(numeric);
-  };
-
-  const maxAmount = () => {
-    setAmount(String(balance));
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-4"
-          onClick={(e) => e.target === e.currentTarget && onClose()}
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-[#eab308]/30 rounded-2xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
         >
-          <motion.div
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', duration: 0.4 }}
-            className="bg-[#0B1F3A] rounded-3xl p-6 md:p-8 w-full max-w-md border border-gold/20 shadow-2xl"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-black text-white">🏧 Withdraw Winnings</h2>
-                <p className="text-gray-400 text-sm mt-0.5">Transfer to your bank account</p>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-            {/* Current Balance */}
-            <div className="bg-black/20 rounded-2xl p-4 mb-6 border border-white/5">
-              <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Available Balance</div>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-black text-gold">{formattedBalance}</div>
-                {balance >= 1000 && (
-                  <button
-                    onClick={maxAmount}
-                    className="text-xs text-gold/70 hover:text-gold font-semibold border border-gold/30 px-3 py-1 rounded-lg transition-colors"
-                  >
-                    MAX
-                  </button>
-                )}
-              </div>
-            </div>
+        <h2 className="text-2xl font-bold text-gold mb-2">Withdraw Funds</h2>
+        <p className="text-gray-400 text-sm mb-6">Minimum: ₦1,000</p>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Amount */}
-              <div>
-                <label className="text-gray-300 text-sm font-semibold mb-2 block">Amount (₦)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gold font-black text-lg">₦</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={amount}
-                    onChange={(e) => handleAmountChange(e.target.value)}
-                    placeholder="Enter amount"
-                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-9 pr-4 text-white font-black text-lg placeholder:text-gray-600 focus:outline-none focus:border-gold/50 transition-colors"
-                  />
-                </div>
-                <div className="text-gray-500 text-xs mt-1">Minimum withdrawal: ₦1,000</div>
-              </div>
+        {message && (
+          <div className={`mb-4 p-3 rounded-lg text-sm ${
+            message.type === 'success'
+              ? 'bg-green-500/20 border border-green-500/50 text-green-400'
+              : 'bg-red-500/20 border border-red-500/50 text-red-400'
+          }`}>
+            {message.text}
+          </div>
+        )}
 
-              {/* Bank Name */}
-              <div>
-                <label className="text-gray-300 text-sm font-semibold mb-2 block">Bank Name</label>
-                <input
-                  type="text"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  placeholder="e.g. First Bank, Opay, Kuda"
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white font-semibold placeholder:text-gray-600 focus:outline-none focus:border-gold/50 transition-colors"
-                />
-              </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Amount (₦)</label>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              min={1000}
+              className="w-full bg-[#0f3460] border border-[#eab308]/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-gold transition-colors"
+              placeholder="Enter amount"
+            />
+          </div>
 
-              {/* Account Number */}
-              <div>
-                <label className="text-gray-300 text-sm font-semibold mb-2 block">Account Number</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
-                  placeholder="10-digit account number"
-                  maxLength={10}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white font-black text-lg tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-gold/50 transition-colors font-mono"
-                />
-              </div>
+          <div>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Bank Name</label>
+            <input
+              type="text"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              className="w-full bg-[#0f3460] border border-[#eab308]/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-gold transition-colors"
+              placeholder="e.g. First Bank"
+            />
+          </div>
 
-              {/* Error */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, height: 0 }}
-                    animate={{ opacity: 1, y: 0, height: 'auto' }}
-                    exit={{ opacity: 0, y: -8, height: 0 }}
-                    className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm font-semibold overflow-hidden"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <div>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Account Number</label>
+            <input
+              type="text"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              maxLength={10}
+              className="w-full bg-[#0f3460] border border-[#eab308]/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-gold transition-colors"
+              placeholder="10-digit account number"
+            />
+          </div>
 
-              {/* Success */}
-              <AnimatePresence>
-                {success && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, height: 0 }}
-                    animate={{ opacity: 1, y: 0, height: 'auto' }}
-                    exit={{ opacity: 0, y: -8, height: 0 }}
-                    className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-green-400 text-sm font-semibold overflow-hidden"
-                  >
-                    ✓ {success}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <div>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Account Name</label>
+            <input
+              type="text"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              className="w-full bg-[#0f3460] border border-[#eab308]/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-gold transition-colors"
+              placeholder="Your account name"
+            />
+          </div>
+        </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading || !!success}
-                className={`w-full py-4 rounded-xl font-black text-deep-blue text-base transition-all flex items-center justify-center gap-2 ${
-                  loading || success
-                    ? 'bg-gray-600 cursor-not-allowed'
-                    : 'bg-gold hover:bg-gold/90 shadow-lg shadow-gold/20'
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Processing...
-                  </>
-                ) : success ? (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Request Submitted!
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                    Request Withdrawal
-                  </>
-                )}
-              </button>
-            </form>
-
-            <p className="text-gray-500 text-xs text-center mt-4">
-              Withdrawals are processed within 24–48 hours.
-            </p>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <button
+          onClick={handleWithdraw}
+          disabled={loading || amount < 1000 || !bankName || !accountNumber || !accountName}
+          className="w-full mt-6 bg-gold hover:bg-gold/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-3 px-4 rounded-xl transition-colors"
+        >
+          {loading ? 'Processing...' : 'Submit Withdrawal Request'}
+        </button>
+      </div>
+    </div>
   );
 }

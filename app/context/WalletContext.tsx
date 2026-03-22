@@ -24,6 +24,7 @@ interface WalletContextType extends WalletState {
   credit: (amount: number, description: string, type: Transaction['type']) => void;
   getBalance: () => number;
   refreshBalance: () => Promise<void>;
+  refreshWallet: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -190,6 +191,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       credit,
       getBalance,
       refreshBalance,
+      refreshWallet: refreshBalance,
     }}>
       {children}
     </WalletContext.Provider>
@@ -198,6 +200,20 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
 export function useWallet(): WalletContextType {
   const ctx = useContext(WalletContext);
-  if (!ctx) throw new Error('useWallet must be used inside WalletProvider');
+  if (!ctx) {
+    // Return safe defaults for components rendered outside WalletProvider (e.g. during static prerender)
+    return {
+      balance: 0,
+      loading: false,
+      transactions: [],
+      fundWallet: async () => {},
+      withdraw: async () => ({ success: false, message: 'Not connected' }),
+      deduct: async () => false,
+      credit: () => {},
+      getBalance: () => 0,
+      refreshBalance: async () => {},
+      refreshWallet: async () => {},
+    };
+  }
   return ctx;
 }
