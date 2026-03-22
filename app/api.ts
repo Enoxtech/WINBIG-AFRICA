@@ -1,131 +1,62 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { purchaseTickets as purchaseTicketsApi, getMyTickets as getMyTicketsApi, getCampaign as getCampaignApi, getBaseUrl } from './api';
 
-export { FALLBACK_CAMPAIGNS } from '@/lib/mockData';
-
-// --- Campaign helpers ---
-async function fetchWithFallback(): Promise<any[]> {
-  try {
-    const res = await fetch(`${API_BASE}/api/campaigns`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
-    return await res.json();
-  } catch {
-    const { FALLBACK_CAMPAIGNS } = await import('@/lib/mockData');
-    return FALLBACK_CAMPAIGNS;
-  }
+// Auth token helper
+function getAuthHeader() {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function getCampaigns() {
-  return fetchWithFallback();
+export const api = {
+  get: async (endpoint: string) => {
+    const base = getBaseUrl();
+    const res = await fetch(`${base}${endpoint}`, {
+      headers: { ...getAuthHeader() },
+    });
+    if (!res.ok) throw new Error(`GET ${endpoint} failed: ${res.status}`);
+    return res.json();
+  },
+
+  post: async (endpoint: string, body: Record<string, unknown>) => {
+    const base = getBaseUrl();
+    const res = await fetch(`${base}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `POST ${endpoint} failed: ${res.status}`);
+    return data;
+  },
+};
+
+export async function purchaseTickets(campaignId: string, quantity: number, token: string) {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/tickets/purchase`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ campaignId, quantity }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Purchase failed');
+  return data;
+}
+
+export async function getMyTickets(token: string) {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/tickets/my-tickets`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to load tickets');
+  return data;
 }
 
 export async function getCampaign(id: string) {
-  try {
-    const res = await fetch(`${API_BASE}/api/campaigns/${id}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
-    return await res.json();
-  } catch {
-    const { FALLBACK_CAMPAIGNS } = await import('@/lib/mockData');
-    return FALLBACK_CAMPAIGNS.find((c: any) => c.id === id) || null;
-  }
-}
-
-export async function createCampaign(data: any, _token?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : _token ?? '';
-  const res = await fetch(`${API_BASE}/api/campaigns`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    body: JSON.stringify(data),
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/campaigns/${id}`, {
+    cache: 'no-store',
   });
-  if (!res.ok) throw new Error('Failed to create campaign');
-  return await res.json();
-}
-
-export async function triggerDraw(campaignId: string, _token?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : _token ?? '';
-  const res = await fetch(`${API_BASE}/api/campaigns/${campaignId}/draw`, {
-    method: 'POST',
-    headers: { Authorization: token ? `Bearer ${token}` : '' },
-  });
-  if (!res.ok) throw new Error('Failed to trigger draw');
-  return await res.json();
-}
-
-// --- Auth ---
-export async function register(full_name: string, email: string, password: string) {
-  const res = await fetch(`${API_BASE}/api/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name, email, password }),
-  });
-  if (!res.ok) throw new Error('Registration failed');
-  return await res.json();
-}
-
-export async function login(email: string, password: string) {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) throw new Error('Login failed');
-  return await res.json();
-}
-
-// --- Tickets ---
-export async function purchaseTickets(campaignId: string, quantity: number, _token?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-  const res = await fetch(`${API_BASE}/api/tickets/purchase`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    body: JSON.stringify({ campaign_id: campaignId, quantity }),
-  });
-  if (!res.ok) throw new Error('Failed to purchase tickets');
-  return await res.json();
-}
-
-export async function getUserTickets() {
-  return getMyTickets();
-}
-
-export async function getMyTickets(_token?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : _token ?? '';
-  const res = await fetch(`${API_BASE}/api/tickets`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error('Failed to fetch tickets');
-  return await res.json();
-}
-
-export async function getUserCampaigns() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-  const res = await fetch(`${API_BASE}/api/users/campaigns`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error('Failed to fetch user campaigns');
-  return await res.json();
-}
-
-// --- Admin ---
-export async function getAdminDashboard(_token?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : _token ?? '';
-  const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error('Failed to fetch admin dashboard');
-  return await res.json();
-}
-
-export async function getAdminUsers(_token?: string) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : _token ?? '';
-  const res = await fetch(`${API_BASE}/api/admin/users`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error('Failed to fetch admin users');
-  return await res.json();
+  if (!res.ok) throw new Error('Failed to load campaign');
+  return res.json();
 }

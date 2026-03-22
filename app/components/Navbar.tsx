@@ -3,14 +3,18 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useWallet } from '../context/WalletContext';
+import WalletModal from './WalletModal';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { balance } = useWallet();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [campOpen, setCampOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
   const campRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +49,12 @@ export default function Navbar() {
     { id: 3, text: '🎉 Emeka N. from Abuja won Toyota Camry 2025!', time: '5h ago' },
     { id: 4, text: '✨ New campaign: ₦1,000,000 Weekend Special', time: '1d ago' },
   ];
+
+  const formattedBalance = new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 0,
+  }).format(balance);
 
   return (
     <>
@@ -203,6 +213,18 @@ export default function Navbar() {
               {/* Auth */}
               {hydrated && user ? (
                 <div className="hidden lg:flex items-center gap-2">
+                  {/* Wallet Balance */}
+                  <div className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-xl px-3 py-1.5">
+                    <span className="text-gold font-black text-sm">💰 {formattedBalance}</span>
+                    <button
+                      onClick={() => setWalletModalOpen(true)}
+                      className="text-xs text-gold/70 hover:text-gold font-semibold transition-colors"
+                      title="Fund Wallet"
+                    >
+                      + Add
+                    </button>
+                  </div>
+
                   <Link href="/dashboard">
                     <motion.span
                       whileHover={{ scale: 1.05 }}
@@ -314,6 +336,19 @@ export default function Navbar() {
 
                 {hydrated && user ? (
                   <>
+                    {/* Mobile Wallet Balance */}
+                    <div className="flex items-center justify-between bg-black/20 border border-white/10 rounded-xl px-4 py-3 mx-3 mb-2">
+                      <div>
+                        <div className="text-gray-400 text-xs">Wallet Balance</div>
+                        <div className="text-gold font-black text-lg">{formattedBalance}</div>
+                      </div>
+                      <button
+                        onClick={() => { setWalletModalOpen(true); setMobileOpen(false); }}
+                        className="bg-gold text-deep-blue font-bold text-xs px-4 py-2 rounded-xl"
+                      >
+                        + Fund
+                      </button>
+                    </div>
                     <div className="border-t border-white/10 pt-3 mt-3">
                       <div className="px-3 py-2 text-gold text-xs font-bold uppercase tracking-wider">My Account</div>
                       <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 text-gray-300 hover:text-gold hover:bg-white/5 transition-colors px-3 py-2.5 rounded-lg text-sm font-medium">📊 Dashboard</Link>
@@ -334,6 +369,9 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </motion.nav>
+
+      {/* Wallet Modal */}
+      <WalletModal isOpen={walletModalOpen} onClose={() => setWalletModalOpen(false)} />
     </>
   );
 }

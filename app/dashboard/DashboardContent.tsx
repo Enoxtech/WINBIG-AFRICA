@@ -3,6 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMyTickets, getCampaign } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useWallet } from '../context/WalletContext';
+import { getMyTickets, getCampaign } from '../api';
+import WalletModal from '../components/WalletModal';
+import WithdrawModal from '../components/WithdrawModal';
 
 const BADGES = [
   { id: 'first_ticket', icon: '🎫', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any, _t: any) => s.total >= 1 },
@@ -186,11 +190,12 @@ function LiveDrawOverlay({ campaign, winner, onClose }: { campaign: any; winner:
 
 export default function DashboardContent() {
   const { user, token } = useAuth();
+  const { balance, transactions } = useWallet();
   const [tickets, setTickets] = useState<any[]>([]);
   const [campaigns, setCampaigns] = useState<Record<string, any>>({});
   const [allCampaigns, setAllCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'tickets' | 'achievements' | 'referral'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'achievements' | 'referral' | 'wallet'>('tickets');
   const [copied, setCopied] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [referralCode] = useState(() => user ? `WINBIG${user.id?.slice(-6).toUpperCase() || Math.random().toString(36).slice(-6).toUpperCase()}` : '');
@@ -201,6 +206,8 @@ export default function DashboardContent() {
     { id: '3', text: 'Welcome to WINBIG AFRICA! Complete your profile to unlock VIP status.', type: 'info', time: '1 day ago', read: true },
   ]);
   const [liveDraw, setLiveDraw] = useState<{ campaign: any; winner: any } | null>(null);
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('winbig_achievements');
@@ -359,6 +366,7 @@ export default function DashboardContent() {
               { key: 'tickets', label: '🎟️ My Tickets' },
               { key: 'achievements', label: '🏅 Achievements' },
               { key: 'referral', label: '🔗 Referral' },
+              { key: 'wallet', label: '💰 Wallet' },
             ].map(tab => (
               <button
                 key={tab.key}

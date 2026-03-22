@@ -8,6 +8,8 @@ import Footer from '../../components/Footer';
 import CountdownTimer from '../../components/CountdownTimer';
 import { getCampaign, purchaseTickets } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { useWallet } from '../../context/WalletContext';
+import WalletModal from '../../components/WalletModal';
 
 interface Campaign {
   id: string;
@@ -25,17 +27,20 @@ interface Campaign {
 export default function CampaignDetailPage() {
   const { id } = useParams();
   const { user, token } = useAuth();
+  const { balance, deduct } = useWallet();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [buying, setBuying] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [walletError, setWalletError] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [sold, setSold] = useState(0);
   const [showLuckyModal, setShowLuckyModal] = useState(false);
   const [luckyNumbers, setLuckyNumbers] = useState<number[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -75,6 +80,14 @@ export default function CampaignDetailPage() {
     if (!user || !token) return;
     if (!agreed) { setError('Please agree to the Terms & Conditions before purchasing.'); return; }
     setError('');
+    setWalletError('');
+
+    // Feature 9: Wallet balance check before purchase
+    if (balance < totalCost) {
+      setWalletError(`Insufficient wallet balance. You need ₦${totalCost.toLocaleString()} but have ₦${balance.toLocaleString()}. Fund wallet to continue.`);
+      return;
+    }
+
     // Feature 9: Lucky Numbers picker before purchase
     if (!showLuckyModal) {
       // Pre-fill 3 random numbers if empty
@@ -88,6 +101,13 @@ export default function CampaignDetailPage() {
     }
     setBuying(true);
     try {
+      // Deduct from wallet first
+      const deducted = await deduct(totalCost, `Ticket purchase — ${campaign?.title}`);
+      if (!deducted) {
+        setWalletError('Failed to deduct from wallet. Please try again.');
+        setBuying(false);
+        return;
+      }
       const data = await purchaseTickets(id as string, quantity, token);
       if (data.error) setError(data.error);
       else {
@@ -335,6 +355,24 @@ export default function CampaignDetailPage() {
                     <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl p-3 mb-4">{error}</div>
                   )}
 
+                  {/* Feature 9: Insufficient wallet balance warning */}
+                  {walletError && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">💰</span>
+                        <div className="flex-1">
+                          <p className="text-amber-800 text-sm font-semibold mb-2">{walletError}</p>
+                          <button
+                            onClick={() => setWalletModalOpen(true)}
+                            className="bg-gold text-deep-blue font-bold text-sm px-4 py-2 rounded-xl hover:bg-gold/90 transition-colors"
+                          >
+                            Fund Wallet
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <AnimatePresence>
                     {success && (
                       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl p-3 mb-4 text-center">
@@ -463,6 +501,9 @@ export default function CampaignDetailPage() {
       </AnimatePresence>
 
       <Footer />
+
+      {/* Feature 9: Wallet Modal */}
+      <WalletModal isOpen={walletModalOpen} onClose={() => setWalletModalOpen(false)} />
     </div>
   );
 }
