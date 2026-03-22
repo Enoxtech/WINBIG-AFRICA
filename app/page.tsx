@@ -393,6 +393,7 @@ export default function HomePage() {
       </section>
     </div>
   );
+  <AppDownloadBanner />
 }
 
 // Campaign Cards with 3D Tilt + Countdown + Lazy Images
