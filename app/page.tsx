@@ -367,6 +367,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <AppDownloadBanner />
+
       {/* CTA BANNER */}
       <section className="bg-deep-blue py-20">
         <div className="max-w-3xl mx-auto px-4 text-center">
