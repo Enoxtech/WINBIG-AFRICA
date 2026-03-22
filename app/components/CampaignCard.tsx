@@ -20,7 +20,7 @@ interface Campaign {
 }
 
 function StatusBadge({ campaign }: { campaign: Campaign }) {
-  const URGENCY_THRESHOLD = 8 * 60 * 60 * 1000;
+  const URGENCY_THRESHOLD = 24 * 60 * 60 * 1000;
   const endTime = new Date(campaign.draw_date).getTime();
   const now = Date.now();
   const isEnded = campaign.status === 'ended' || endTime <= now;

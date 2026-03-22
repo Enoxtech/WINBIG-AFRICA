@@ -11,7 +11,7 @@ const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
 
 const blurDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==';
 
-function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffix?: string; prefix?: string }) {
+function AnimatedCounter({ end, suffix = '', prefix = '', formatFn }: { end: number; suffix?: string; prefix?: string; formatFn?: (n: number) => string }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
@@ -29,7 +29,8 @@ function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffi
     return () => clearInterval(timer);
   }, [inView, end]);
 
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+  const display = formatFn ? formatFn(count) : `${prefix}${count.toLocaleString()}${suffix}`;
+  return <span ref={ref}>{display}</span>;
 }
 
 function ConfettiTrigger() {
@@ -55,7 +56,7 @@ export default function HomePage() {
   useEffect(() => { setMounted(true); }, []);
 
   const stats = [
-    { value: 5000000, prefix: 'N', suffix: '+', label: 'Total Won', icon: '🏆' },
+    { value: 2500000000, prefix: '₦', suffix: '+', label: 'Total Won', icon: '🏆', formatFn: (n: number) => n >= 1e9 ? `₦${(n / 1e9).toFixed(1)}B+` : `₦${n.toLocaleString()}+` },
     { value: 25000, suffix: '+', label: 'Active Players', icon: '👥' },
     { value: 120, suffix: '+', label: 'Campaigns Completed', icon: '🎯' },
     { value: 98, suffix: '%', label: 'Payout Rate', icon: '⚡' },
@@ -202,6 +203,78 @@ export default function HomePage() {
                 <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRIZE TIER SHOWCASE */}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Explore by Category</span>
+            <h2 className="section-title mt-2">Choose Your Dream Prize</h2>
+            <p className="text-gray-500 mt-2 max-w-xl mx-auto">From life-changing jackpots to everyday tech — pick your prize and start winning.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link href="/campaigns?filter=jackpot">
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="bg-gradient-to-br from-deep-blue to-deep-blue/80 rounded-2xl p-8 border border-gold/20 hover:border-gold/50 hover:shadow-2xl hover:shadow-gold/10 cursor-pointer group"
+              >
+                <div className="text-5xl mb-4">🏆</div>
+                <h3 className="text-xl font-black text-white mb-2">Mega Jackpots</h3>
+                <p className="text-gray-400 text-sm mb-4">Prizes of ₦5M and above. Life-changing wins await!</p>
+                <div className="flex items-center gap-2 text-gold font-semibold text-sm group-hover:gap-3 transition-all">
+                  Browse Jackpots <span>→</span>
+                </div>
+              </motion.div>
+            </Link>
+
+            <Link href="/campaigns?filter=cars">
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="bg-gradient-to-br from-gold/90 to-gold/70 rounded-2xl p-8 border border-gold/30 hover:shadow-2xl hover:shadow-gold/20 cursor-pointer group"
+              >
+                <div className="text-5xl mb-4">🚗</div>
+                <h3 className="text-xl font-black text-deep-blue mb-2">Cars & Vehicles</h3>
+                <p className="text-deep-blue/70 text-sm mb-4">Win your dream car — Toyota, Honda, SUVs and more!</p>
+                <div className="flex items-center gap-2 text-deep-blue font-semibold text-sm group-hover:gap-3 transition-all">
+                  Browse Cars <span>→</span>
+                </div>
+              </motion.div>
+            </Link>
+
+            <Link href="/campaigns?filter=tech">
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 hover:border-gold/50 hover:shadow-2xl hover:shadow-gold/10 cursor-pointer group"
+              >
+                <div className="text-5xl mb-4">📱</div>
+                <h3 className="text-xl font-black text-white mb-2">Tech & Electronics</h3>
+                <p className="text-gray-400 text-sm mb-4">iPhones, MacBooks, gaming consoles, and gadgets!</p>
+                <div className="flex items-center gap-2 text-gold font-semibold text-sm group-hover:gap-3 transition-all">
+                  Browse Tech <span>→</span>
+                </div>
+              </motion.div>
+            </Link>
           </div>
         </div>
       </section>

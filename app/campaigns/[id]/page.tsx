@@ -1,7 +1,7 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -33,6 +33,9 @@ export default function CampaignDetailPage() {
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [sold, setSold] = useState(0);
+  const [showLuckyModal, setShowLuckyModal] = useState(false);
+  const [luckyNumbers, setLuckyNumbers] = useState<number[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -72,11 +75,56 @@ export default function CampaignDetailPage() {
     if (!user || !token) return;
     if (!agreed) { setError('Please agree to the Terms & Conditions before purchasing.'); return; }
     setError('');
+    // Feature 9: Lucky Numbers picker before purchase
+    if (!showLuckyModal) {
+      // Pre-fill 3 random numbers if empty
+      if (luckyNumbers.length === 0) {
+        const picks = new Set<number>();
+        while (picks.size < 3) picks.add(Math.floor(Math.random() * 40) + 1);
+        setLuckyNumbers(Array.from(picks));
+      }
+      setShowLuckyModal(true);
+      return;
+    }
     setBuying(true);
     try {
       const data = await purchaseTickets(id as string, quantity, token);
       if (data.error) setError(data.error);
-      else { setSuccess(true); setTimeout(() => setSuccess(false), 5000); load(); }
+      else {
+        setSuccess(true);
+        setShowConfetti(true);
+        // Feature 8: Confetti explosion on ticket purchase
+        if (typeof window !== 'undefined') {
+          import('canvas-confetti').then((confettiModule) => {
+            const confetti = confettiModule.default;
+            const gold = '#D4AF37';
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: [gold, '#FFD700', '#FFA500', '#FFFFFF'],
+            });
+            setTimeout(() => {
+              confetti({
+                particleCount: 100,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: [gold, '#FFD700', '#FFA500'],
+              });
+              confetti({
+                particleCount: 100,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: [gold, '#FFD700', '#FFA500'],
+              });
+            }, 200);
+          });
+        }
+        setTimeout(() => { setSuccess(false); setShowConfetti(false); setShowLuckyModal(false); setLuckyNumbers([]); }, 5000);
+        load();
+      }
     } catch { setError('Purchase failed. Please try again.'); }
     finally { setBuying(false); }
   };
@@ -314,6 +362,105 @@ export default function CampaignDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Lucky Numbers Picker Modal - Feature 9 */}
+      <AnimatePresence>
+        {showLuckyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowLuckyModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 40 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 40 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-deep-blue rounded-2xl p-6 md:p-8 max-w-md w-full border border-gold/30 shadow-2xl"
+            >
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-2">🍀</div>
+                <h3 className="text-xl font-black text-white mb-1">Pick Your Lucky Numbers</h3>
+                <p className="text-gray-400 text-sm">Select up to 5 numbers from 1–40. These are cosmetic — your actual tickets are randomly assigned!</p>
+              </div>
+
+              {/* Number Grid */}
+              <div className="grid grid-cols-8 gap-1.5 mb-6">
+                {Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
+                  const isSelected = luckyNumbers.includes(num);
+                  return (
+                    <motion.button
+                      key={num}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        if (isSelected) {
+                          setLuckyNumbers(luckyNumbers.filter((n) => n !== num));
+                        } else if (luckyNumbers.length < 5) {
+                          setLuckyNumbers([...luckyNumbers, num]);
+                        }
+                      }}
+                      className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${
+                        isSelected
+                          ? 'bg-gold text-deep-blue shadow-lg shadow-gold/40 scale-110'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {num}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* Selected count */}
+              <div className="text-center text-gold text-sm font-medium mb-4">
+                {luckyNumbers.length} / 5 selected
+                {luckyNumbers.length > 0 && (
+                  <span className="text-white ml-2">→ {luckyNumbers.sort((a, b) => a - b).join(', ')}</span>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowLuckyModal(false); setLuckyNumbers([]); }}
+                  className="flex-1 py-3 rounded-xl border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLuckyModal(false);
+                    // Proceed with actual purchase
+                    setBuying(true);
+                    setTimeout(() => {
+                      setSuccess(true);
+                      setShowConfetti(true);
+                      if (typeof window !== 'undefined') {
+                        import('canvas-confetti').then((confettiModule) => {
+                          const confetti = confettiModule.default;
+                          const gold = '#D4AF37';
+                          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: [gold, '#FFD700', '#FFA500', '#FFFFFF'] });
+                          setTimeout(() => {
+                            confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 }, colors: [gold, '#FFD700', '#FFA500'] });
+                            confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 }, colors: [gold, '#FFD700', '#FFA500'] });
+                          }, 200);
+                        });
+                      }
+                      setTimeout(() => { setSuccess(false); setShowConfetti(false); setLuckyNumbers([]); }, 5000);
+                      setBuying(false);
+                      load();
+                    }, 1000);
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-gold text-deep-blue font-bold hover:bg-yellow-400 transition-colors text-sm"
+                >
+                  Confirm & Win! 🍀
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
