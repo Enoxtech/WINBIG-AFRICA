@@ -6,6 +6,15 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Particles from './components/Particles';
 import UrgencyBanner from './components/UrgencyBanner';
+import TrustBadges from './components/TrustBadges';
+import LiveDrawCountdown from './components/LiveDrawCountdown';
+import WinnerLiveFeed from './components/WinnerLiveFeed';
+import AffiliateBanner from './components/AffiliateBanner';
+import JackpotSpotlight from './components/JackpotSpotlight';
+import SocialProofCounter from './components/SocialProofCounter';
+import HowItWorks from './components/HowItWorks';
+import FAQSection from './components/FAQSection';
+import AppDownloadBanner from './components/AppDownloadBanner';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
 
@@ -79,6 +88,7 @@ export default function HomePage() {
     <div className="relative overflow-hidden">
       {mounted && <ConfettiTrigger />}
       <UrgencyBanner />
+      <TrustBadges />
       {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <Particles />
@@ -280,6 +290,9 @@ export default function HomePage() {
       </section>
 
       {/* LIVE CAMPAIGNS */}
+      <SocialProofCounter />
+      <JackpotSpotlight />
+      <LiveDrawCountdown />
       <section id="campaigns" className="bg-light-gray py-20">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -308,40 +321,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <WinnerLiveFeed />
+      <AffiliateBanner />
 
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="bg-deep-blue py-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-14"
-          >
-            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Simple Process</span>
-            <h2 className="text-4xl font-bold text-white mt-2">How It Works</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ y: 40, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors"
-              >
-                <div className="text-5xl mb-4">{step.icon}</div>
-                <div className="text-gold font-black text-sm mb-2">{step.num}</div>
-                <h3 className="text-white font-bold text-lg mb-2">{step.title}</h3>
-                <p className="text-gray-400 text-sm">{step.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
 
       {/* WINNERS TICKER */}
       <WinnerTicker />
@@ -384,6 +367,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <FAQSection />
+      <AppDownloadBanner />
 
       {/* CTA BANNER */}
       <section className="bg-deep-blue py-20">
