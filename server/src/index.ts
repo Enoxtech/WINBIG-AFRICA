@@ -89,6 +89,90 @@ const mockCampaigns: any[] = [
 const mockTickets: any[] = [];
 const mockDraws: any[] = [];
 
+// ─── Mock Withdrawals Store ───
+type WithdrawalStatus = 'pending' | 'approved' | 'rejected' | 'paid';
+interface Withdrawal {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  amount: number;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  status: WithdrawalStatus;
+  created_at: string;
+  processed_at?: string;
+  note?: string;
+}
+
+const mockWithdrawals: Withdrawal[] = [
+  {
+    id: 'wd-001',
+    user_id: 'user-001',
+    user_name: 'Chidi Okafor',
+    user_email: 'chidi.okafor@gmail.com',
+    amount: 50000,
+    bank_name: 'Access Bank',
+    account_number: '0741234567',
+    account_name: 'Chidi Okafor',
+    status: 'pending',
+    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-002',
+    user_id: 'user-002',
+    user_name: 'Blessing Obi',
+    user_email: 'blessing.obi@yahoo.com',
+    amount: 120000,
+    bank_name: 'GTBank',
+    account_number: '0023123456',
+    account_name: 'Blessing Obi',
+    status: 'pending',
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-003',
+    user_id: 'user-003',
+    user_name: 'Emeka Nwosu',
+    user_email: 'emeka.nwosu@gmail.com',
+    amount: 25000,
+    bank_name: 'UBA',
+    account_number: '2081234567',
+    account_name: 'Emeka Chukwuemeka Nwosu',
+    status: 'approved',
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    processed_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-004',
+    user_id: 'user-004',
+    user_name: 'Ngozi Adichukwu',
+    user_email: 'ngozi.adichukwu@gmail.com',
+    amount: 85000,
+    bank_name: 'First Bank',
+    account_number: '3045678901',
+    account_name: 'Ngozi Adichukwu',
+    status: 'paid',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    processed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-005',
+    user_id: 'user-005',
+    user_name: 'Ayomide Bello',
+    user_email: 'ayomide.bello@icloud.com',
+    amount: 15000,
+    bank_name: 'Opay',
+    account_number: '9012345678',
+    account_name: 'Ayomide Bello',
+    status: 'rejected',
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    processed_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    note: 'Account number does not match registered name.',
+  },
+];
+
 app.use(cors());
 app.use(express.json());
 
@@ -456,6 +540,259 @@ app.post('/api/admin/draws/:id', authMiddleware, adminMiddleware, async (req, re
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─── Mock Withdrawals Store ───
+type WithdrawalStatus = 'pending' | 'approved' | 'rejected' | 'paid';
+interface Withdrawal {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  amount: number;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  status: WithdrawalStatus;
+  created_at: string;
+  processed_at?: string;
+  note?: string;
+}
+
+const mockWithdrawals: Withdrawal[] = [
+  {
+    id: 'wd-001',
+    user_id: 'user-001',
+    user_name: 'Chidi Okafor',
+    user_email: 'chidi.okafor@gmail.com',
+    amount: 50000,
+    bank_name: 'Access Bank',
+    account_number: '0741234567',
+    account_name: 'Chidi Okafor',
+    status: 'pending',
+    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-002',
+    user_id: 'user-002',
+    user_name: 'Blessing Obi',
+    user_email: 'blessing.obi@yahoo.com',
+    amount: 120000,
+    bank_name: 'GTBank',
+    account_number: '0023123456',
+    account_name: 'Blessing Obi',
+    status: 'pending',
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-003',
+    user_id: 'user-003',
+    user_name: 'Emeka Nwosu',
+    user_email: 'emeka.nwosu@gmail.com',
+    amount: 25000,
+    bank_name: 'UBA',
+    account_number: '2081234567',
+    account_name: 'Emeka Chukwuemeka Nwosu',
+    status: 'approved',
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    processed_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-004',
+    user_id: 'user-004',
+    user_name: 'Ngozi Adichukwu',
+    user_email: 'ngozi.adichukwu@gmail.com',
+    amount: 85000,
+    bank_name: 'First Bank',
+    account_number: '3045678901',
+    account_name: 'Ngozi Adichukwu',
+    status: 'paid',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    processed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'wd-005',
+    user_id: 'user-005',
+    user_name: 'Ayomide Bello',
+    user_email: 'ayomide.bello@icloud.com',
+    amount: 15000,
+    bank_name: 'Opay',
+    account_number: '9012345678',
+    account_name: 'Ayomide Bello',
+    status: 'rejected',
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    processed_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    note: 'Account number does not match registered name.',
+  },
+];
+
+// ─── Wallet & Payment Endpoints ───
+
+// Get current user's wallet
+app.get('/api/wallet', authMiddleware, async (req, res) => {
+  try {
+    const user = mockUsers.find(u => u.id === req.user.id);
+    const wallet = user?.wallet || { balance: 0, total_won: 0, total_withdrawn: 0, total_spent: 0 };
+    res.json(wallet);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get withdrawal history for current user
+app.get('/api/wallet/withdrawals', authMiddleware, async (req, res) => {
+  try {
+    const withdrawals = mockWithdrawals
+      .filter(w => w.user_id === req.user.id)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(withdrawals);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Request a withdrawal
+app.post('/api/wallet/withdraw', authMiddleware, async (req, res) => {
+  try {
+    const { amount, bank_name, account_number, account_name } = req.body;
+
+    if (!amount || amount < 1000) return res.status(400).json({ error: 'Minimum withdrawal is ₦1,000' });
+    if (!bank_name || !account_number || !account_name) return res.status(400).json({ error: 'Bank details required' });
+
+    const user = mockUsers.find(u => u.id === req.user.id);
+    const balance = user?.wallet?.balance || 0;
+    if (amount > balance) return res.status(400).json({ error: 'Insufficient balance' });
+
+    if (!user.wallet) user.wallet = { balance: 0, total_won: 0, total_withdrawn: 0, total_spent: 0 };
+    user.wallet.balance -= amount;
+    user.wallet.total_withdrawn += amount;
+
+    const withdrawal: Withdrawal = {
+      id: `wd-${uuidv4().slice(0, 8)}`,
+      user_id: req.user.id,
+      user_name: user.name,
+      user_email: user.email,
+      amount,
+      bank_name,
+      account_number,
+      account_name,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+    mockWithdrawals.unshift(withdrawal);
+
+    io.emit('admin:notification', { type: 'withdrawal_request', message: `${user.name} requested ₦${amount.toLocaleString()} withdrawal` });
+
+    res.json({ success: true, withdrawal });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Admin Withdrawal Endpoints ───
+
+// List all withdrawals (admin)
+app.get('/api/admin/withdrawals', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    let results = [...mockWithdrawals];
+
+    if (status && status !== 'all') {
+      results = results.filter(w => w.status === status);
+    }
+
+    results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const total = results.length;
+    const start = (Number(page) - 1) * Number(limit);
+    const paginated = results.slice(start, start + Number(limit));
+
+    res.json({ withdrawals: paginated, total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Approve a withdrawal (admin)
+app.post('/api/admin/withdrawals/:id/approve', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const withdrawal = mockWithdrawals.find(w => w.id === req.params.id);
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+    if (withdrawal.status !== 'pending') return res.status(400).json({ error: 'Can only approve pending withdrawals' });
+
+    withdrawal.status = 'approved';
+    withdrawal.processed_at = new Date().toISOString();
+
+    io.emit('admin:notification', { type: 'withdrawal_approved', message: `Your ₦${withdrawal.amount.toLocaleString()} withdrawal has been approved!`, user_id: withdrawal.user_id });
+    io.emit('withdrawal:update', { id: withdrawal.id, status: 'approved' });
+
+    res.json({ success: true, withdrawal });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reject a withdrawal (admin)
+app.post('/api/admin/withdrawals/:id/reject', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const withdrawal = mockWithdrawals.find(w => w.id === req.params.id);
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+    if (withdrawal.status !== 'pending') return res.status(400).json({ error: 'Can only reject pending withdrawals' });
+
+    const note = req.body.note || 'Withdrawal request rejected by admin.';
+    withdrawal.status = 'rejected';
+    withdrawal.processed_at = new Date().toISOString();
+    withdrawal.note = note;
+
+    // Refund balance to user
+    const user = mockUsers.find(u => u.id === withdrawal.user_id);
+    if (user?.wallet) {
+      user.wallet.balance += withdrawal.amount;
+      user.wallet.total_withdrawn -= withdrawal.amount;
+    }
+
+    io.emit('admin:notification', { type: 'withdrawal_rejected', message: `Your ₦${withdrawal.amount.toLocaleString()} withdrawal was rejected. Funds have been returned.`, user_id: withdrawal.user_id });
+    io.emit('withdrawal:update', { id: withdrawal.id, status: 'rejected' });
+
+    res.json({ success: true, withdrawal });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark withdrawal as paid/outgoing (admin)
+app.post('/api/admin/withdrawals/:id/mark-paid', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const withdrawal = mockWithdrawals.find(w => w.id === req.params.id);
+    if (!withdrawal) return res.status(404).json({ error: 'Withdrawal not found' });
+    if (!['approved', 'pending'].includes(withdrawal.status)) {
+      return res.status(400).json({ error: 'Can only mark pending or approved withdrawals as paid' });
+    }
+
+    withdrawal.status = 'paid';
+    withdrawal.processed_at = new Date().toISOString();
+
+    io.emit('admin:notification', { type: 'withdrawal_paid', message: `₦${withdrawal.amount.toLocaleString()} paid to ${withdrawal.account_name}`, user_id: withdrawal.user_id });
+    io.emit('withdrawal:update', { id: withdrawal.id, status: 'paid' });
+
+    res.json({ success: true, withdrawal });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Pause / resume all withdrawals (admin)
+let withdrawalsPaused = false;
+app.get('/api/admin/withdrawals/status', authMiddleware, adminMiddleware, async (_req, res) => {
+  res.json({ paused: withdrawalsPaused });
+});
+app.post('/api/admin/withdrawals/pause', authMiddleware, adminMiddleware, async (_req, res) => {
+  withdrawalsPaused = true;
+  res.json({ success: true, paused: true });
+});
+app.post('/api/admin/withdrawals/resume', authMiddleware, adminMiddleware, async (_req, res) => {
+  withdrawalsPaused = false;
+  res.json({ success: true, paused: false });
 });
 
 app.get('/api/admin/campaigns/:id/participants', authMiddleware, adminMiddleware, async (req, res) => {
