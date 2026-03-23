@@ -303,3 +303,166 @@ export async function getReferralStats(token: string) {
     return { total_referrals: 0, total_earned: 0, pending_bonus: 0, referral_link: '', referral_code: '', recent_referrals: [] };
   }
 }
+
+// ==========================================
+// WALLET & PAYMENTS
+// ==========================================
+
+export async function getWallet(userId: string) {
+  return fetchWithFallback(
+    /api/wallet/,
+    {
+      userId,
+      balance: 24500,
+      totalWon: 157500,
+      totalWithdrawn: 45000,
+      totalSpent: 88000,
+      bonusBalance: 2500,
+      lastWon: { amount: 5000, date: '2026-03-20T14:30:00Z', campaign: 'Mega Jackpot March' }
+    }
+  );
+}
+
+export async function getTransactions(userId: string) {
+  return fetchWithFallback(
+    /api/wallet//transactions,
+    {
+      transactions: [
+        { id: 'txn_001', type: 'win', amount: 5000, description: 'Won: Mega Jackpot March', date: '2026-03-20T14:30:00Z', status: 'completed' },
+        { id: 'txn_002', type: 'deposit', amount: 5000, description: 'Paystack Deposit', date: '2026-03-18T10:15:00Z', status: 'completed' },
+        { id: 'txn_003', type: 'withdraw', amount: 20000, description: 'Withdrawal to First Bank ****4521', date: '2026-03-15T16:45:00Z', status: 'completed' },
+        { id: 'txn_004', type: 'ticket', amount: -1000, description: 'Campaign Ticket Purchase', date: '2026-03-14T09:00:00Z', status: 'completed' },
+        { id: 'txn_005', type: 'ticket', amount: -1000, description: 'Campaign Ticket Purchase', date: '2026-03-14T09:01:00Z', status: 'completed' },
+        { id: 'txn_006', type: 'win', amount: 2500, description: 'Won: Weekly Bonus Draw', date: '2026-03-10T12:00:00Z', status: 'completed' },
+        { id: 'txn_007', type: 'deposit', amount: 10000, description: 'Paystack Deposit', date: '2026-03-08T14:20:00Z', status: 'completed' },
+        { id: 'txn_008', type: 'withdraw', amount: 15000, description: 'Withdrawal to Access Bank ****8823', date: '2026-03-05T11:30:00Z', status: 'completed' },
+      ]
+    }
+  );
+}
+
+export async function requestWithdrawal(data: {
+  userId: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}) {
+  return fetchWithFallback(/api/wallet//withdraw, {
+    success: true,
+    message: 'Withdrawal request submitted successfully',
+    withdrawal: {
+      id: 'wdr_' + Date.now(),
+      amount: data.amount,
+      bankName: data.bankName,
+      accountNumber: data.accountNumber,
+      accountName: data.accountName,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    }
+  });
+}
+
+export async function requestDeposit(data: {
+  userId: string;
+  amount: number;
+  paymentReference: string;
+}) {
+  return fetchWithFallback(/api/deposit, {
+    success: true,
+    message: 'Deposit initiated',
+    deposit: {
+      id: 'dep_' + Date.now(),
+      amount: data.amount,
+      paymentReference: data.paymentReference,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    }
+  });
+}
+
+// ==========================================
+// USER PROFILE
+// ==========================================
+
+export async function getProfile(userId: string) {
+  return fetchWithFallback(
+    /api/users/,
+    {
+      id: userId,
+      name: 'Emeka Okonkwo',
+      email: 'emeka.okonkwo@gmail.com',
+      phone: '+234 801 234 5678',
+      avatar: null,
+      bankName: 'First Bank of Nigeria',
+      accountNumber: '****4521',
+      accountName: 'Emeka O. Okonkwo',
+      referralCode: 'EMEKA2026',
+      referredBy: 'SUNNY45',
+      createdAt: '2025-11-15T08:00:00Z'
+    }
+  );
+}
+
+export async function updateProfile(userId: string, data: { name?: string; email?: string; phone?: string }) {
+  return fetchWithFallback(/api/users/, {
+    success: true,
+    message: 'Profile updated successfully',
+    user: { id: userId, ...data }
+  });
+}
+
+export async function updateBankDetails(userId: string, data: { bankName: string; accountNumber: string; accountName: string }) {
+  return fetchWithFallback(/api/users//bank, {
+    success: true,
+    message: 'Bank details updated successfully',
+    bank: data
+  });
+}
+
+// ==========================================
+// REFERRAL STATS
+// ==========================================
+
+export async function getReferralStats(userId: string) {
+  return fetchWithFallback(
+    /api/referrals//stats,
+    {
+      referralCode: 'EMEKA2026',
+      totalReferrals: 12,
+      successfulReferrals: 8,
+      pendingReferrals: 4,
+      totalEarnings: 24000,
+      pendingEarnings: 8000,
+      paidOut: 16000,
+      referrals: [
+        { id: 'ref_001', name: 'Chidi Nwankwo', date: '2026-03-20', status: 'successful', earned: 2000 },
+        { id: 'ref_002', name: 'Blessing Obi', date: '2026-03-18', status: 'successful', earned: 2000 },
+        { id: 'ref_003', name: 'Emeka Ugo', date: '2026-03-15', status: 'pending', earned: 0 },
+        { id: 'ref_004', name: 'Chioma Eze', date: '2026-03-12', status: 'successful', earned: 2000 },
+        { id: 'ref_005', name: 'Obinna Okafor', date: '2026-03-10', status: 'successful', earned: 2000 },
+      ]
+    }
+  );
+}
+
+// ==========================================
+// DASHBOARD STATS (for quick view)
+// ==========================================
+
+export async function getDashboardStats(userId: string) {
+  return fetchWithFallback(
+    /api/dashboard/stats/,
+    {
+      totalTickets: 47,
+      activeCampaigns: 3,
+      totalWins: 5,
+      winStreak: 2,
+      nextDraw: '2026-03-28T20:00:00Z',
+      recentWins: [
+        { amount: 5000, campaign: 'Mega Jackpot March', date: '2026-03-20' },
+        { amount: 2500, campaign: 'Weekly Bonus Draw', date: '2026-03-10' },
+      ]
+    }
+  );
+}
