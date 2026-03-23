@@ -14,6 +14,7 @@ import JackpotSpotlight from './components/JackpotSpotlight';
 import SocialProofCounter from './components/SocialProofCounter';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
+import { getCampaigns } from '@/lib/mockData';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
 
@@ -404,8 +405,7 @@ function CampaignCards() {
   const [tilt, setTilt] = useState<Record<number, { rotateX: number; rotateY: number }>>({});
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`)
-      .then(r => r.json())
+    getCampaigns()
       .then(d => setCampaigns(Array.isArray(d) ? d.slice(0, 3) : []))
       .catch(() => {});
   }, []);

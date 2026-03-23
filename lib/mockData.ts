@@ -99,3 +99,17 @@ export const FALLBACK_CAMPAIGNS = [
     prize_amount: 250_000,
   },
 ];
+
+// Simulates API call with realistic delay, falls back to FALLBACK_CAMPAIGNS when API is unavailable
+export async function getCampaigns() {
+  try {
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const res = await fetch(`${API_BASE}/api/campaigns`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('API unavailable');
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    // Return fallback campaigns when backend is not live
+    return FALLBACK_CAMPAIGNS;
+  }
+}
