@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import CountdownTimer from './CountdownTimer';
 
 interface UrgencyBannerProps {
@@ -6,8 +7,20 @@ interface UrgencyBannerProps {
 }
 
 export default function UrgencyBanner({ campaigns }: UrgencyBannerProps) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Hide once user scrolls past the hero (~80vh)
+      setVisible(window.scrollY < window.innerHeight * 0.8);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  if (!visible) return null;
+
   // Default to showing the weekly raffle if no campaigns provided
-  // Use a FIXED date — never Date.now() which restarts on every refresh
   const urgent = campaigns?.[0] || {
     title: '₦500,000 Weekly Raffle',
     draw_date: '2026-03-28T17:00:00.000Z',
