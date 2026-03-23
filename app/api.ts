@@ -144,3 +144,39 @@ export async function getAdminUsers(_token?: string) {
   if (!res.ok) throw new Error('Failed to fetch admin users');
   return await res.json();
 }
+
+// ─── Notifications ───
+export const getNotifications = (token: string) =>
+  fetchWithFallback(`${API_BASE}/api/notifications`, token);
+
+export const getUnreadNotificationCount = (token: string) =>
+  fetchWithFallback(`${API_BASE}/api/notifications/unread-count`, token);
+
+export const markNotificationsRead = (token: string, ids?: string[]) =>
+  fetchWithFallback(`${API_BASE}/api/notifications/mark-read`, token, {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+
+export const deleteNotification = (token: string, id: string) =>
+  fetchWithFallback(`${API_BASE}/api/notifications/${id}`, token, { method: 'DELETE' });
+
+// ─── User Profile ───
+export const getCurrentUser = (token: string) =>
+  fetchWithFallback(`${API_BASE}/api/users/me`, token);
+
+export const updateProfile = (data: { full_name?: string; phone?: string; date_of_birth?: string }, token: string) =>
+  fetchWithFallback(`${API_BASE}/api/users/me`, token, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+
+export const updateBankDetails = (data: { bank_name: string; account_number: string; account_name: string }, token: string) =>
+  fetchWithFallback(`${API_BASE}/api/users/me/bank`, token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+// ─── Referrals ───
+export const getReferralStats = (token: string) =>
+  fetchWithFallback(`${API_BASE}/api/referrals/stats`, token);

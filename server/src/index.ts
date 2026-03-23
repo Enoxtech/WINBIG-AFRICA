@@ -344,6 +344,183 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// ─── User Notifications ───
+interface Notification {
+  id: string;
+  user_id: string;
+  type: 'win' | 'deposit' | 'withdrawal' | 'campaign_end' | 'draw' | 'system' | 'referral';
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+const mockNotifications: Notification[] = [
+  {
+    id: 'notif-001',
+    user_id: 'user-001',
+    type: 'win',
+    title: '🎉 You Won!',
+    message: 'Congratulations! You won ₦500,000 in the Weekly Mega Raffle.',
+    read: false,
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-002',
+    user_id: 'user-001',
+    type: 'deposit',
+    title: '💰 Deposit Confirmed',
+    message: 'Your deposit of ₦10,000 has been confirmed.',
+    read: true,
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-003',
+    user_id: 'user-001',
+    type: 'campaign_end',
+    title: '🏁 Campaign Ending Soon',
+    message: 'The ₦5M Mega Jackpot draw is in 3 hours!',
+    read: false,
+    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-004',
+    user_id: 'user-001',
+    type: 'referral',
+    title: '🎁 Referral Bonus',
+    message: 'Ayomide Bello used your referral link! You earned ₦500 bonus.',
+    read: false,
+    created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-005',
+    user_id: 'user-001',
+    type: 'system',
+    title: '🔔 Welcome to WINBIG Africa!',
+    message: 'Your account is ready. Buy your first ticket and stand a chance to win big!',
+    read: true,
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+// Get user notifications
+app.get('/api/notifications', authMiddleware, async (req, res) => {
+  try {
+    const notifications = mockNotifications
+      .filter(n => n.user_id === req.user.id)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(notifications);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get unread notification count
+app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const count = mockNotifications.filter(n => n.user_id === req.user.id && !n.read).length;
+    res.json({ count });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark notifications as read
+app.post('/api/notifications/mark-read', authMiddleware, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (ids && Array.isArray(ids)) {
+      mockNotifications.forEach(n => {
+        if (n.user_id === req.user.id && ids.includes(n.id)) n.read = true;
+      });
+    } else {
+      // Mark all as read
+      mockNotifications.forEach(n => { if (n.user_id === req.user.id) n.read = true; });
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a notification
+app.delete('/api/notifications/:id', authMiddleware, async (req, res) => {
+  try {
+    const idx = mockNotifications.findIndex(n => n.id === req.params.id && n.user_id === req.user.id);
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    mockNotifications.splice(idx, 1);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── User Profile ───
+app.get('/api/users/me', authMiddleware, async (req, res) => {
+  try {
+    const user = mockUsers.find(u => u.id === req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const { password_hash, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/users/me', authMiddleware, async (req, res) => {
+  try {
+    const user = mockUsers.find(u => u.id === req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const { full_name, phone, date_of_birth } = req.body;
+    if (full_name) user.name = full_name;
+    if (phone !== undefined) user.phone = phone;
+    if (date_of_birth !== undefined) user.date_of_birth = date_of_birth;
+    const { password_hash, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/users/me/bank', authMiddleware, async (req, res) => {
+  try {
+    const user = mockUsers.find(u => u.id === req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const { bank_name, account_number, account_name } = req.body;
+    if (!bank_name || !account_number || !account_name) {
+      return res.status(400).json({ error: 'All bank fields required' });
+    }
+    user.bank = { bank_name, account_number, account_name };
+    res.json({ success: true, bank: user.bank });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Referrals ───
+app.get('/api/referrals/stats', authMiddleware, async (req, res) => {
+  try {
+    // Mock referral data keyed by user
+    const stats: Record<string, any> = {
+      [req.user.id]: {
+        referral_code: `WINBIG${req.user.id.slice(0, 4).toUpperCase()}`,
+        referral_link: `https://winbig.africa/register?ref=WINBIG${req.user.id.slice(0, 4).toUpperCase()}`,
+        total_referrals: 5,
+        total_earned: 2500,
+        pending_bonus: 500,
+        recent_referrals: [
+          { name: 'Ayomide Bello', amount: 500, date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), status: 'earned' },
+          { name: 'Chinedu Amadi', amount: 500, date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'earned' },
+          { name: 'Fatima Bello', amount: 0, date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: 'pending' },
+        ],
+      }
+    };
+    res.json(stats[req.user.id] || { referral_code: '', referral_link: '', total_referrals: 0, total_earned: 0, pending_bonus: 0, recent_referrals: [] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Campaign Routes
 app.get('/api/campaigns', async (req, res) => {
   try {
