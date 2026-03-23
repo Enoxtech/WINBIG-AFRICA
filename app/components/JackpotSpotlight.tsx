@@ -2,12 +2,16 @@
 import { useState, useEffect } from 'react';
 
 export default function JackpotSpotlight() {
-  const [countdown, setCountdown] = useState({ days: 2, hours: 14, minutes: 32, seconds: 45 });
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    // Next Friday at 9:00 PM WAT (UTC+1)
     const target = new Date();
-    target.setDate(target.getDate() + 3);
+    const dayOfWeek = target.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+    target.setDate(target.getDate() + daysUntilFriday);
     target.setHours(21, 0, 0, 0);
+
     const timer = setInterval(() => {
       const now = new Date();
       const diff = target.getTime() - now.getTime();
@@ -37,7 +41,7 @@ export default function JackpotSpotlight() {
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4">
               ₦50,000,000
             </h2>
-            <p className="text-gray-300 text-lg mb-6">This Friday's guaranteed jackpot. Don't miss your chance to change your life forever.</p>
+            <p className="text-gray-300 text-lg mb-6">This Friday&apos;s guaranteed jackpot. Don&apos;t miss your chance to change your life forever.</p>
             <a href="/campaigns" className="inline-block bg-gold hover:bg-yellow-400 text-deep-blue font-black px-10 py-4 rounded-full transition-colors text-lg">
               Enter Now
             </a>
