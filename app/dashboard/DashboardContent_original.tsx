@@ -8,13 +8,13 @@ import WalletModal from '../components/WalletModal';
 import WithdrawModal from '../components/WithdrawModal';
 
 const BADGES = [
-  { id: 'first_ticket', icon: 'ğŸ«', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any, _t: any) => s.total >= 1 },
-  { id: 'first_win', icon: 'ğŸ‰', title: 'First Win', desc: 'Win your first prize', condition: (s: any, _t: any) => s.won >= 1 },
-  { id: 'streak_master', icon: 'ğŸ”¥', title: 'Streak Master', desc: '7-day login streak', condition: (s: any, _t: any) => s.streak >= 7 },
-  { id: 'jackpot_club', icon: 'ğŸ‘‘', title: 'Jackpot Club', desc: 'Win a mega jackpot', condition: (s: any, _t: any) => s.jackpot },
-  { id: 'campaign_5', icon: 'ğŸ¯', title: 'Campaign Pro', desc: 'Enter 5 different campaigns', condition: (s: any, _t: any) => s.campaigns >= 5 },
-  { id: 'lucky_10', icon: 'ğŸ€', title: 'Lucky Soul', desc: 'Purchase 10 tickets at once', condition: (s: any, _t: any) => s.maxSingle >= 10 },
-  { id: 'vip', icon: 'ğŸ’', title: 'VIP Member', desc: 'Win 3+ times on WINBIG', condition: (s: any, _t: any) => s.won >= 3 },
+  { id: 'first_ticket', icon: '=ƒÄ½', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any, _t: any) => s.total >= 1 },
+  { id: 'first_win', icon: '=ƒÄë', title: 'First Win', desc: 'Win your first prize', condition: (s: any, _t: any) => s.won >= 1 },
+  { id: 'streak_master', icon: '=ƒöÑ', title: 'Streak Master', desc: '7-day login streak', condition: (s: any, _t: any) => s.streak >= 7 },
+  { id: 'jackpot_club', icon: '=ƒææ', title: 'Jackpot Club', desc: 'Win a mega jackpot', condition: (s: any, _t: any) => s.jackpot },
+  { id: 'campaign_5', icon: '=ƒÄ»', title: 'Campaign Pro', desc: 'Enter 5 different campaigns', condition: (s: any, _t: any) => s.campaigns >= 5 },
+  { id: 'lucky_10', icon: '=ƒìÇ', title: 'Lucky Soul', desc: 'Purchase 10 tickets at once', condition: (s: any, _t: any) => s.maxSingle >= 10 },
+  { id: 'vip', icon: '=ƒÆÄ', title: 'VIP Member', desc: 'Win 3+ times on WINBIG', condition: (s: any, _t: any) => s.won >= 3 },
 ];
 
 function playChaChing() {
@@ -46,8 +46,8 @@ function AchievementCard({ badge, unlocked, delay }: { badge: typeof BADGES[0]; 
       <div className={`text-4xl mb-2 ${unlocked ? '' : 'grayscale'}`}>{badge.icon}</div>
       <h4 className={`font-bold text-sm mb-0.5 ${unlocked ? 'text-deep-blue' : 'text-gray-400'}`}>{badge.title}</h4>
       <p className="text-gray-400 text-xs">{badge.desc}</p>
-      {unlocked && <span className="inline-block mt-2 text-gold text-xs font-bold">âœ“ Unlocked</span>}
-      {!unlocked && <span className="inline-block mt-2 text-gray-300 text-xs font-bold">ğŸ”’ Locked</span>}
+      {unlocked && <span className="inline-block mt-2 text-gold text-xs font-bold">G£ô Unlocked</span>}
+      {!unlocked && <span className="inline-block mt-2 text-gray-300 text-xs font-bold">=ƒöÆ Locked</span>}
     </motion.div>
   );
 }
@@ -64,7 +64,7 @@ function StreakCalendar({ streakDays }: { streakDays: number }) {
   return (
     <div className="bg-white rounded-2xl p-5 border border-gray-100 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-deep-blue">ğŸ”¥ Streak Calendar</h3>
+        <h3 className="font-bold text-deep-blue">=ƒöÑ Streak Calendar</h3>
         <span className="text-gold font-black text-lg">{streakDays} day{streakDays !== 1 ? 's' : ''}</span>
       </div>
       <div className="grid grid-cols-7 gap-1.5">
@@ -129,7 +129,7 @@ function NotificationBell({ notifications, onMarkRead }: { notifications: { id: 
               ) : notifications.map(n => (
                 <div key={n.id} className={`px-4 py-3 border-b border-gray-50 text-sm ${n.read ? '' : 'bg-blue-50/50'}`}>
                   <div className="flex items-start gap-2">
-                    <span className="text-lg flex-shrink-0">{n.type === 'win' ? 'ğŸ†' : n.type === 'ending' ? 'â°' : 'â„¹ï¸'}</span>
+                    <span className="text-lg flex-shrink-0">{n.type === 'win' ? '=ƒÅå' : n.type === 'ending' ? 'GÅ¦' : 'Gä¦n+Å'}</span>
                     <div>
                       <p className="text-deep-blue font-medium text-xs leading-relaxed">{n.text}</p>
                       <p className="text-gray-400 text-xs mt-0.5">{n.time}</p>
@@ -170,9 +170,9 @@ function LiveDrawOverlay({ campaign, winner, onClose }: { campaign: any; winner:
           transition={{ repeat: Infinity, duration: 0.5 }}
           className="text-7xl mb-4"
         >
-          ğŸ‰
+          =ƒÄë
         </motion.div>
-        <div className="text-gold font-black text-xs uppercase tracking-widest mb-2">ğŸ† Winner Selected</div>
+        <div className="text-gold font-black text-xs uppercase tracking-widest mb-2">=ƒÅå Winner Selected</div>
         <h2 className="text-2xl font-black text-deep-blue mb-2">{campaign?.title || 'Campaign'}</h2>
         <div className="bg-gold/10 rounded-xl p-4 mb-6">
           <div className="text-3xl font-black text-deep-blue">{winner?.name || 'Winner Name'}</div>
@@ -194,14 +194,14 @@ export default function DashboardContent() {
   const [campaigns, setCampaigns] = useState<Record<string, any>>({});
   const [allCampaigns, setAllCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'tickets' | 'achievements' | 'referral' | 'wallet'>('tickets');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'achievements' | 'referral' | 'wallet'>('tickets');
   const [copied, setCopied] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [referralCode] = useState(() => user ? `WINBIG${user.id?.slice(-6).toUpperCase() || Math.random().toString(36).slice(-6).toUpperCase()}` : '');
   const [stats, setStats] = useState({ total: 0, won: 0, streak: 0, jackpot: false, campaigns: 0, maxSingle: 0 });
   const [notifications, setNotifications] = useState<{ id: string; text: string; type: string; time: string; read: boolean }[]>([
-    { id: '1', text: 'ğŸ‰ You won the Weekly Mega Raffle! Claim your N50,000 prize now.', type: 'win', time: '2 hours ago', read: false },
-    { id: '2', text: 'â° â‚¦5,000,000 Jackpot ends in 3 hours â€” final chance to enter!', type: 'ending', time: '1 hour ago', read: false },
+    { id: '1', text: '=ƒÄë You won the Weekly Mega Raffle! Claim your N50,000 prize now.', type: 'win', time: '2 hours ago', read: false },
+    { id: '2', text: 'GÅ¦ Géª5,000,000 Jackpot ends in 3 hours GÇö final chance to enter!', type: 'ending', time: '1 hour ago', read: false },
     { id: '3', text: 'Welcome to WINBIG AFRICA! Complete your profile to unlock VIP status.', type: 'info', time: '1 day ago', read: true },
   ]);
   const [liveDraw, setLiveDraw] = useState<{ campaign: any; winner: any } | null>(null);
@@ -270,12 +270,12 @@ export default function DashboardContent() {
   };
 
   const shareToX = (campaign: any) => {
-    const text = `I just entered to win ${campaign?.title || 'an amazing prize'} on @WINBIGAFRICA! ğŸ‰ğŸ† #WINBIG #Nigeria`;
+    const text = `I just entered to win ${campaign?.title || 'an amazing prize'} on @WINBIGAFRICA! =ƒÄë=ƒÅå #WINBIG #Nigeria`;
     window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareToWhatsApp = (campaign: any) => {
-    const text = `I just entered to win ${campaign?.title || 'an amazing prize'} on WINBIG AFRICA! ğŸ‰ğŸ†\n\nJoin me here: https://winbig.africa/campaigns`;
+    const text = `I just entered to win ${campaign?.title || 'an amazing prize'} on WINBIG AFRICA! =ƒÄë=ƒÅå\n\nJoin me here: https://winbig.africa/campaigns`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -290,7 +290,7 @@ export default function DashboardContent() {
     setLiveDraw({ campaign, winner });
     setNotifications(prev => [{
       id: `live_${Date.now()}`,
-      text: `ğŸ† LIVE: Winner selected for ${campaign.title} â€” you could be next!`,
+      text: `=ƒÅå LIVE: Winner selected for ${campaign.title} GÇö you could be next!`,
       type: 'win',
       time: 'Right now',
       read: false,
@@ -314,7 +314,7 @@ export default function DashboardContent() {
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex items-start justify-between mb-8">
             <div>
               <h1 className="text-3xl font-black text-deep-blue">
-                Welcome back, {user?.name?.split(' ')[0] || 'Champion'} ğŸ‘‹
+                Welcome back, {user?.name?.split(' ')[0] || 'Champion'} =ƒæï
               </h1>
               <p className="text-gray-500 mt-1">Track your tickets, achievements, and referral earnings.</p>
             </div>
@@ -347,10 +347,10 @@ export default function DashboardContent() {
             className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8"
           >
             {[
-              { label: 'Total Tickets', value: stats.total, icon: 'ğŸŸï¸' },
-              { label: 'Prizes Won', value: stats.won, icon: 'ğŸ†' },
-              { label: 'Streak Days', value: stats.streak, icon: 'ğŸ”¥' },
-              { label: 'Campaigns Entered', value: stats.campaigns, icon: 'ğŸ¯' },
+              { label: 'Total Tickets', value: stats.total, icon: '=ƒÄƒn+Å' },
+              { label: 'Prizes Won', value: stats.won, icon: '=ƒÅå' },
+              { label: 'Streak Days', value: stats.streak, icon: '=ƒöÑ' },
+              { label: 'Campaigns Entered', value: stats.campaigns, icon: '=ƒÄ»' },
             ].map((s, i) => (
               <div key={s.label} className="bg-white rounded-xl p-4 border border-gray-100">
                 <div className="text-2xl mb-1">{s.icon}</div>
@@ -362,11 +362,10 @@ export default function DashboardContent() {
 
           <div className="flex gap-2 mb-6 bg-white rounded-xl p-1 border border-gray-100 w-fit">
             {[
-              { key: 'tickets', label: 'ğŸŸï¸ My Tickets' },
-              { key: 'overview', label: 'ğŸ“Š Overview' },
-              { key: 'achievements', label: 'ğŸ… Achievements' },
-              { key: 'referral', label: 'ğŸ”— Referral' },
-              { key: 'wallet', label: 'ğŸ’° Wallet' },
+              { key: 'tickets', label: '=ƒÄƒn+Å My Tickets' },
+              { key: 'achievements', label: '=ƒÅà Achievements' },
+              { key: 'referral', label: '=ƒöù Referral' },
+              { key: 'wallet', label: '=ƒÆ¦ Wallet' },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -385,16 +384,16 @@ export default function DashboardContent() {
                   <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white rounded-xl h-20 animate-pulse border border-gray-100" />)}</div>
                 ) : tickets.length === 0 ? (
                   <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
-                    <div className="text-5xl mb-4">ğŸŸï¸</div>
+                    <div className="text-5xl mb-4">=ƒÄƒn+Å</div>
                     <h3 className="font-bold text-deep-blue text-lg mb-2">No tickets yet</h3>
                     <p className="text-gray-400 text-sm mb-5">Time to try your luck! Enter your first campaign.</p>
-                    <a href="/campaigns" className="inline-block bg-gold text-deep-blue font-bold px-6 py-2.5 rounded-xl text-sm">Browse Campaigns â†’</a>
+                    <a href="/campaigns" className="inline-block bg-gold text-deep-blue font-bold px-6 py-2.5 rounded-xl text-sm">Browse Campaigns GåÆ</a>
                   </div>
                 ) : (
                   <>
                     {wonTickets.length > 0 && (
                       <div>
-                        <h3 className="font-black text-deep-blue mb-3 flex items-center gap-2">ğŸ† My Wins ({wonTickets.length})</h3>
+                        <h3 className="font-black text-deep-blue mb-3 flex items-center gap-2">=ƒÅå My Wins ({wonTickets.length})</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {wonTickets.map((ticket: any, i: number) => (
                             <motion.div
@@ -406,7 +405,7 @@ export default function DashboardContent() {
                             >
                               <div>
                                 <div className="font-bold text-deep-blue text-sm">{campaigns[ticket.campaign_id]?.title || 'Campaign #' + ticket.campaign_id}</div>
-                                <div className="text-gold text-xs font-bold mt-0.5">ğŸ‰ WON â€” Prize Claimed!</div>
+                                <div className="text-gold text-xs font-bold mt-0.5">=ƒÄë WON GÇö Prize Claimed!</div>
                               </div>
                               <div className="flex gap-1">
                                 <button onClick={() => shareToX(campaigns[ticket.campaign_id])} className="p-2 rounded-lg bg-white border border-gray-100 hover:bg-gold/10 transition-colors" title="Share on X">
@@ -423,7 +422,7 @@ export default function DashboardContent() {
                     )}
 
                     <div>
-                      <h3 className="font-black text-deep-blue mb-3">ğŸŸï¸ All Tickets ({tickets.length})</h3>
+                      <h3 className="font-black text-deep-blue mb-3">=ƒÄƒn+Å All Tickets ({tickets.length})</h3>
                       <div className="space-y-3">
                         {tickets.map((ticket: any, i: number) => (
                           <motion.div
@@ -436,13 +435,13 @@ export default function DashboardContent() {
                             <div>
                               <div className="font-bold text-deep-blue text-sm">{campaigns[ticket.campaign_id]?.title || 'Campaign #' + ticket.campaign_id}</div>
                               <div className="text-gray-400 text-xs mt-0.5">
-                                {ticket.quantity || 1} ticket{(ticket.quantity || 1) > 1 ? 's' : ''} â€¢ {new Date(ticket.created_at).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                {ticket.quantity || 1} ticket{(ticket.quantity || 1) > 1 ? 's' : ''} GÇó {new Date(ticket.created_at).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {ticket.status === 'won' && <span className="bg-gold/10 text-gold text-xs font-bold px-3 py-1 rounded-full">ğŸ† WON</span>}
-                              {ticket.status === 'pending' && <span className="bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full">â³ Pending</span>}
-                              {ticket.status === 'lost' && <span className="bg-gray-100 text-gray-400 text-xs font-bold px-3 py-1 rounded-full">âœ— Not Selected</span>}
+                              {ticket.status === 'won' && <span className="bg-gold/10 text-gold text-xs font-bold px-3 py-1 rounded-full">=ƒÅå WON</span>}
+                              {ticket.status === 'pending' && <span className="bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full">GÅ¦ Pending</span>}
+                              {ticket.status === 'lost' && <span className="bg-gray-100 text-gray-400 text-xs font-bold px-3 py-1 rounded-full">G£ù Not Selected</span>}
                               {ticket.status === 'pending' && (
                                 <button onClick={() => shareToX(campaigns[ticket.campaign_id])} className="p-2 rounded-lg hover:bg-gold/10 transition-colors" title="Share on X">
                                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -469,12 +468,12 @@ export default function DashboardContent() {
                 <div className="mt-6 bg-deep-blue rounded-2xl p-6 text-center">
                   <h3 className="text-white font-bold text-lg mb-1">Unlock All Badges!</h3>
                   <p className="text-gray-400 text-sm mb-4">Keep playing to unlock every achievement and climb the leaderboard.</p>
-                  <a href="/campaigns" className="inline-block bg-gold text-deep-blue font-bold px-6 py-2.5 rounded-xl text-sm">Start Playing â†’</a>
+                  <a href="/campaigns" className="inline-block bg-gold text-deep-blue font-bold px-6 py-2.5 rounded-xl text-sm">Start Playing GåÆ</a>
                 </div>
                 {stats.won >= 1 && (
                   <div className="mt-4 bg-gradient-to-r from-gold/20 to-white rounded-2xl p-6 border border-gold/30 text-center">
                     <button onClick={triggerLiveDraw} className="text-gold font-black text-sm hover:underline">
-                      ğŸ² Simulate Live Draw (Demo)
+                      =ƒÄ¦ Simulate Live Draw (Demo)
                     </button>
                     <p className="text-gray-400 text-xs mt-1">See how the live winner selection animation works</p>
                   </div>
@@ -485,7 +484,7 @@ export default function DashboardContent() {
             {activeTab === 'referral' && (
               <motion.div key="referral" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center max-w-lg mx-auto">
-                  <div className="text-5xl mb-4">ğŸ</div>
+                  <div className="text-5xl mb-4">=ƒÄü</div>
                   <h2 className="text-2xl font-black text-deep-blue mb-2">Share & Earn</h2>
                   <p className="text-gray-500 text-sm mb-6">
                     Invite friends to WINBIG AFRICA. When they purchase their first ticket, you earn a <strong className="text-gold">N500 bonus</strong> into your account!
@@ -501,7 +500,7 @@ export default function DashboardContent() {
                         onClick={handleCopy}
                         className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex-shrink-0 ${copied ? 'bg-green-500 text-white' : 'bg-gold text-deep-blue'}`}
                       >
-                        {copied ? 'âœ“ Copied!' : 'Copy'}
+                        {copied ? 'G£ô Copied!' : 'Copy'}
                       </motion.button>
                     </div>
                   </div>
