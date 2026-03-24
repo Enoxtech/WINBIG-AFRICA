@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import WalletModal from '../components/WalletModal';
 import WithdrawModal from '../components/WithdrawModal';
+import CampaignsTab from './components/CampaignsTab';
+import ProfileTab from './components/ProfileTab';
 
 const BADGES = [
   { id: 'first_ticket', icon: '🎫', title: 'First Ticket', desc: 'Buy your first raffle ticket', condition: (s: any, _t: any) => s.total >= 1 },
@@ -194,7 +196,7 @@ export default function DashboardContent() {
   const [campaigns, setCampaigns] = useState<Record<string, any>>({});
   const [allCampaigns, setAllCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'tickets' | 'achievements' | 'referral' | 'wallet'>('tickets');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tickets' | 'achievements' | 'referral' | 'wallet' | 'campaigns' | 'profile'>('tickets');
   const [copied, setCopied] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [referralCode] = useState(() => user ? `WINBIG${user.id?.slice(-6).toUpperCase() || Math.random().toString(36).slice(-6).toUpperCase()}` : '');
@@ -364,6 +366,8 @@ export default function DashboardContent() {
             {[
               { key: 'tickets', label: '🎟️ My Tickets' },
               { key: 'overview', label: '📊 Overview' },
+              { key: 'campaigns', label: '🎯 Campaigns' },
+              { key: 'profile', label: '👤 Profile' },
               { key: 'achievements', label: '🏅 Achievements' },
               { key: 'referral', label: '🔗 Referral' },
               { key: 'wallet', label: '💰 Wallet' },
@@ -523,6 +527,17 @@ export default function DashboardContent() {
                   </div>
                   <p className="text-gray-400 text-xs mt-6">Bonus is credited within 24 hours. No limit on referrals!</p>
                 </div>
+              </motion.div>
+            )}
+            {activeTab === 'campaigns' && (
+              <motion.div key="campaigns" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <CampaignsTab />
+              </motion.div>
+            )}
+
+            {activeTab === 'profile' && (
+              <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <ProfileTab />
               </motion.div>
             )}
           </AnimatePresence>
