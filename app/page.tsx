@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import Particles from './components/Particles';
 import UrgencyBanner from './components/UrgencyBanner';
 import TrustBadges from './components/TrustBadges';
