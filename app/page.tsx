@@ -11,6 +11,7 @@ import AffiliateBanner from './components/AffiliateBanner';
 import JackpotSpotlight from './components/JackpotSpotlight';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
+import ErrorBoundary from './components/ErrorBoundary';
 import { getCampaigns } from './api';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
@@ -87,7 +88,8 @@ export default function HomePage() {
       <UrgencyBanner />
       <TrustBadges />
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <ErrorBoundary>
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <Particles />
         <div className="absolute inset-0 bg-deep-blue" />
         <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.4) 0%, transparent 60%)' }} />
@@ -189,6 +191,7 @@ export default function HomePage() {
           </div>
         </motion.div>
       </section>
+      </ErrorBoundary>
 
       {/* STATS BAR */}
       <section className="bg-white border-y border-gray-100">
