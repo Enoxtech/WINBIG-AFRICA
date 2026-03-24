@@ -7,11 +7,8 @@ import Image from 'next/image';
 import Particles from './components/Particles';
 import UrgencyBanner from './components/UrgencyBanner';
 import TrustBadges from './components/TrustBadges';
-import LiveDrawCountdown from './components/LiveDrawCountdown';
-import WinnerLiveFeed from './components/WinnerLiveFeed';
 import AffiliateBanner from './components/AffiliateBanner';
 import JackpotSpotlight from './components/JackpotSpotlight';
-import SocialProofCounter from './components/SocialProofCounter';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
 import { getCampaigns } from '@/lib/mockData';
@@ -195,8 +192,8 @@ export default function HomePage() {
 
       {/* STATS BAR */}
       <section className="bg-white border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -206,8 +203,8 @@ export default function HomePage() {
                 transition={{ delay: i * 0.1, duration: 0.5 }}
                 className="text-center"
               >
-                <div className="text-3xl mb-1">{stat.icon}</div>
-                <div className="text-2xl sm:text-3xl font-black text-deep-blue leading-tight">
+                <div className="text-2xl mb-1">{stat.icon}</div>
+                <div className="text-xl sm:text-2xl font-black text-deep-blue leading-tight">
                   <AnimatedCounter end={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
                 <div className="text-gray-500 text-xs sm:text-sm font-medium mt-1">{stat.label}</div>
@@ -289,10 +286,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* LIVE CAMPAIGNS */}
-      <SocialProofCounter />
-      <JackpotSpotlight />
-      <LiveDrawCountdown />
+      {/* PRIZE TIER SHOWCASE */}
       <section id="campaigns" className="bg-light-gray py-20">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
