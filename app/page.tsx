@@ -12,7 +12,7 @@ import JackpotSpotlight from './components/JackpotSpotlight';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
 import RaffleDrum from './components/RaffleDrum';
-import { getCampaigns } from '@/lib/mockData';
+import { getCampaigns } from './api';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
 
