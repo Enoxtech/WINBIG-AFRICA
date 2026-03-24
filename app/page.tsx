@@ -14,7 +14,7 @@ import AppDownloadBanner from './components/AppDownloadBanner';
 import { getCampaigns } from './api';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
-const RaffleDrum = dynamic(() => import('./components/RaffleDrum'), { ssr: false });
+const RaffleDrumWrapper = dynamic(() => import('./components/RaffleDrumWrapper'), { ssr: false });
 
 const blurDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==';
 
@@ -334,7 +334,7 @@ export default function HomePage() {
             <p className="text-gray-400 mt-2 max-w-lg mx-auto">Every draw is completely random. Watch the drum mix the balls — no algorithms, no manipulation.</p>
           </motion.div>
           <div className="max-w-lg mx-auto">
-            <RaffleDrum />
+            <RaffleDrumWrapper />
           </div>
         </div>
       </section>
