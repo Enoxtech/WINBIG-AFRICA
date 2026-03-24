@@ -5,6 +5,12 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+async function getToken(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  const match = document.cookie.match(/token=([^;]+)/);
+  return match ? match[1] : null;
+}
+
 async function fetchWithFallback<T>(url: string, fallbackData: T): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${url}`, {
@@ -280,7 +286,7 @@ export async function purchaseTickets(campaignId: string, quantity: number) {
   }
 }
 
-export async function initializePaystackPayment(amount: number, email: string, type: 'deposit' | 'ticket') {
+export async function initializePaystackPayment(amount: number, email: string, type: 'deposit' | 'ticket' = 'deposit') {
   const token = getToken();
   if (!token) return { error: 'Unauthorized' };
   try {

@@ -21,7 +21,7 @@ export default function MyTickets() {
     try {
       setLoading(true);
       const data = await getMyTickets(user.id); // In real app, would use token
-      setTickets(data || []);
+      setTickets((data?.tickets || []) as any[]);
     } catch (err: any) {
       setError(err.message || 'Failed to load tickets');
     } finally {

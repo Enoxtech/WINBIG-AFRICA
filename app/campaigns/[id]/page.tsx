@@ -108,7 +108,7 @@ export default function CampaignDetailPage() {
         setBuying(false);
         return;
       }
-      const data = await purchaseTickets(id as string, quantity, token);
+      const data = await purchaseTickets(id as string, quantity);
       if (data.error) setError(data.error);
       else {
         setSuccess(true);

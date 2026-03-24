@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getCampaigns } from '../../../api';
+import { getCampaigns } from '../../api';
 
 interface Campaign {
   id: string;

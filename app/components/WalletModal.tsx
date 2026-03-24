@@ -26,7 +26,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     setLoading(true);
     setError('');
 
-    initializePaystackPayment(user.email, amount)
+    initializePaystackPayment(amount, user.email)
       .then((data) => {
         if (data.data && data.data.authorization_url) {
           window.location.href = data.data.authorization_url;

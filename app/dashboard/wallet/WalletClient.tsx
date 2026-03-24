@@ -51,7 +51,7 @@ export default function WalletClient({ userId }: { userId: string }) {
     if (!depositAmount || parseFloat(depositAmount) < 100) return;
     setProcessing(true);
     try {
-      await requestDeposit({ userId, amount: parseFloat(depositAmount), paymentReference: 'PSK_' + Date.now() });
+      await requestDeposit(userId, parseFloat(depositAmount));
       setSuccessMsg(`₦${parseFloat(depositAmount).toLocaleString()} deposit initiated! Check your Paystack dashboard to complete payment.`);
       setShowDepositModal(false);
       setDepositAmount('');
@@ -68,7 +68,7 @@ export default function WalletClient({ userId }: { userId: string }) {
     }
     setProcessing(true);
     try {
-      await requestWithdrawal({ userId, amount: parseFloat(withdrawAmount), bankName: withdrawBank, accountNumber: withdrawAccount, accountName: withdrawName });
+      await requestWithdrawal(userId, parseFloat(withdrawAmount), withdrawBank, withdrawAccount, withdrawName);
       setSuccessMsg(`₦${parseFloat(withdrawAmount).toLocaleString()} withdrawal request submitted!`);
       setShowWithdrawModal(false);
       setWithdrawAmount('');

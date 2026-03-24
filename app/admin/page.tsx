@@ -155,9 +155,9 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const [s, c, u] = await Promise.all([
-        getAdminDashboard(token),
+        getAdminDashboard(),
         getCampaigns(),
-        getAdminUsers(token),
+        getAdminUsers(),
       ]);
       setStats({
         ...(s || {}),
@@ -185,10 +185,10 @@ export default function AdminPage() {
         description: form.description,
         image_url: form.image_url,
         ticket_price: parseFloat(form.ticket_price),
-        total_tickets: parseInt(form.total_tickets),
+        max_tickets: parseInt(form.total_tickets),
         end_date: form.end_date,
         prize_amount: parseFloat(form.prize_amount) || parseFloat(form.ticket_price) * parseInt(form.total_tickets),
-      }, token);
+      });
       setMsg('✅ Campaign created successfully!');
       setForm({ title: '', description: '', image_url: '', ticket_price: '', total_tickets: '', end_date: '', prize_amount: '' });
       loadData();
@@ -206,7 +206,7 @@ export default function AdminPage() {
     if (!confirm('Trigger the draw for this campaign? A random winner will be selected.')) return;
     setDrawLoading(campaignId);
     try {
-      await triggerDraw(campaignId, token);
+      await triggerDraw(campaignId);
       setMsg('🏆 Draw completed successfully!');
       loadData();
     } catch {

@@ -21,7 +21,7 @@ export default function CampaignsPage() {
   const loadCampaigns = async () => {
     try {
       const data = await getCampaigns();
-      setCampaigns(data || []);
+      setCampaigns((data?.campaigns || []) as any[]);
     } catch (err) {
       console.error(err);
     } finally {
