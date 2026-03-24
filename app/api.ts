@@ -7,8 +7,7 @@ interface ApiResponse<T> {
 
 async function getToken(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
-  const match = document.cookie.match(/token=([^;]+)/);
-  return match ? match[1] : null;
+  return localStorage.getItem('wb_token');
 }
 
 async function fetchWithFallback<T>(url: string, fallbackData: T): Promise<T> {
@@ -73,7 +72,25 @@ export async function getCampaigns() {
 
 export async function getCampaign(id: string) {
   const data = await getCampaigns();
-  return (data as any).campaigns?.find((c: any) => c.id === id) || null;
+  const c = (data as any).campaigns?.find((c: any) => c.id === id) || null;
+  if (!c) return null;
+  return {
+    ...c,
+    // Frontend camelCase names
+    ticketPrice: c.ticket_price !== undefined ? c.ticket_price : c.ticketPrice,
+    maxTickets: c.total_tickets !== undefined ? c.total_tickets : c.maxTickets,
+    ticketsSold: c.sold_tickets !== undefined ? c.sold_tickets : c.ticketsSold,
+    endDate: c.end_date !== undefined ? c.end_date : c.endDate,
+    prizeValue: c.prize_value !== undefined ? c.prize_value : c.prizeValue,
+    imageUrl: c.image_url !== undefined ? c.image_url : c.imageUrl,
+    // Backend snake_case aliases (for pages that use these)
+    ticket_price: c.ticketPrice !== undefined ? c.ticketPrice : c.ticket_price,
+    total_tickets: c.maxTickets !== undefined ? c.maxTickets : c.total_tickets,
+    sold_tickets: c.ticketsSold !== undefined ? c.ticketsSold : c.sold_tickets,
+    end_date: c.endDate !== undefined ? c.endDate : c.end_date,
+    prize_value: c.prizeValue !== undefined ? c.prizeValue : c.prize_value,
+    image_url: c.imageUrl !== undefined ? c.imageUrl : c.image_url,
+  };
 }
 
 export async function getMyTickets(userId: string) {

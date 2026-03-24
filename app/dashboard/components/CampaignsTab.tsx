@@ -8,14 +8,13 @@ interface Campaign {
   id: string;
   title: string;
   description: string;
-  jackpot_amount: number;
-  ticket_price: number;
-  max_tickets: number;
-  sold_tickets: number;
-  start_time: string;
-  end_time: string;
+  prizeValue: number;
+  ticketPrice: number;
+  maxTickets: number;
+  ticketsSold: number;
+  endDate: string;
   status: string;
-  image_url?: string;
+  imageUrl?: string;
 }
 
 export default function CampaignsTab() {
@@ -29,7 +28,7 @@ export default function CampaignsTab() {
     });
   }, []);
 
-  const activeCampaigns = campaigns.filter(c => c.status === 'active' || c.status === 'upcoming');
+  const activeCampaigns = campaigns.filter(c => c.status === 'active' || c.status === 'jackpot');
 
   if (loading) {
     return (
@@ -55,10 +54,10 @@ export default function CampaignsTab() {
       ) : (
         <div className="grid gap-4">
           {activeCampaigns.slice(0, 5).map(campaign => {
-            const sold = campaign.sold_tickets || 0;
-            const max = campaign.max_tickets || 1;
+            const sold = campaign.ticketsSold || 0;
+            const max = campaign.maxTickets || 1;
             const pct = Math.min((sold / max) * 100, 100);
-            const ends = new Date(campaign.end_time);
+            const ends = new Date(campaign.endDate);
             const now = new Date();
             const hoursLeft = Math.max(0, (ends.getTime() - now.getTime()) / 3600000);
 
@@ -73,23 +72,25 @@ export default function CampaignsTab() {
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                       campaign.status === 'active'
                         ? 'bg-green-500/20 text-green-400'
-                        : 'bg-yellow-500/20 text-yellow-400'
+                        : campaign.status === 'jackpot'
+                        ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-gray-500/20 text-gray-400'
                     }`}>
-                      {campaign.status?.toUpperCase()}
+                      {campaign.status === 'jackpot' ? '🎰 JACKPOT' : campaign.status?.toUpperCase()}
                     </span>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Jackpot</span>
+                      <span className="text-gray-400">Prize Value</span>
                       <span className="text-[#D4AF37] font-bold">
-                        ₦{(campaign.jackpot_amount || 0).toLocaleString()}
+                        ₦{(campaign.prizeValue || 0).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Ticket Price</span>
                       <span className="text-white font-medium">
-                        ₦{(campaign.ticket_price || 0).toLocaleString()}
+                        ₦{(campaign.ticketPrice || 0).toLocaleString()}
                       </span>
                     </div>
                     <div className="w-full bg-[#0A0A0A] rounded-full h-2">
