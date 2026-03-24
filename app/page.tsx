@@ -11,7 +11,6 @@ import AffiliateBanner from './components/AffiliateBanner';
 import JackpotSpotlight from './components/JackpotSpotlight';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
-import RaffleDrum from './components/RaffleDrum';
 import { getCampaigns } from './api';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
@@ -319,25 +318,6 @@ export default function HomePage() {
       <AffiliateBanner />
 
       <HowItWorks />
-
-      {/* RAFFLE DRUM DEMO */}
-      <section className="bg-deep-blue py-20">
-        <div className="max-w-5xl mx-auto px-4">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-10"
-          >
-            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Transparency</span>
-            <h2 className="section-title mt-2 text-white">See the Draw in Action</h2>
-            <p className="text-gray-400 mt-2 max-w-lg mx-auto">Every draw is completely random. Watch the drum mix the balls — no algorithms, no manipulation.</p>
-          </motion.div>
-          <div className="max-w-lg mx-auto">
-            <RaffleDrum />
-          </div>
-        </div>
-      </section>
 
       {/* WINNERS TICKER */}
       <WinnerTicker />
