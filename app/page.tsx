@@ -11,6 +11,7 @@ import AffiliateBanner from './components/AffiliateBanner';
 import JackpotSpotlight from './components/JackpotSpotlight';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
+import RaffleDrum from './components/RaffleDrum';
 import { getCampaigns } from '@/lib/mockData';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
@@ -319,6 +320,25 @@ export default function HomePage() {
 
       <HowItWorks />
 
+      {/* RAFFLE DRUM DEMO */}
+      <section className="bg-deep-blue py-20">
+        <div className="max-w-5xl mx-auto px-4">
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <span className="text-gold font-semibold text-sm uppercase tracking-wider">Transparency</span>
+            <h2 className="section-title mt-2 text-white">See the Draw in Action</h2>
+            <p className="text-gray-400 mt-2 max-w-lg mx-auto">Every draw is completely random. Watch the drum mix the balls — no algorithms, no manipulation.</p>
+          </motion.div>
+          <div className="max-w-lg mx-auto">
+            <RaffleDrum />
+          </div>
+        </div>
+      </section>
+
       {/* WINNERS TICKER */}
       <WinnerTicker />
 
@@ -408,7 +428,7 @@ function CampaignCards() {
     const interval = setInterval(() => {
       const newCountdowns: Record<number, any> = {};
       campaigns.forEach(c => {
-        const diff = new Date(c.end_date).getTime() - Date.now();
+        const diff = new Date(c.endDate).getTime() - Date.now();
         if (diff <= 0) { newCountdowns[c.id] = { days: 0, hours: 0, mins: 0, secs: 0 }; return; }
         newCountdowns[c.id] = {
           days: Math.floor(diff / 86400000),
@@ -441,9 +461,9 @@ function CampaignCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {campaigns.map((c, i) => {
-        const pct = Math.round((c.sold_tickets / c.total_tickets) * 100);
+        const pct = Math.round((c.ticketsSold / c.maxTickets) * 100);
         const cd = countdowns[c.id] || { days: 0, hours: 0, mins: 0, secs: 0 };
-        const isExpired = new Date(c.end_date).getTime() <= Date.now();
+        const isExpired = new Date(c.endDate).getTime() <= Date.now();
         const t = tilt[c.id] || { rotateX: 0, rotateY: 0 };
 
         return (
@@ -465,7 +485,7 @@ function CampaignCards() {
             >
               <div className="h-44 bg-gray-200 relative overflow-hidden">
                 <Image
-                  src={c.image_url || '/placeholder.jpg'}
+                  src={c.imageUrl || '/placeholder.jpg'}
                   alt={c.title}
                   fill
                   className="object-cover"
@@ -509,7 +529,7 @@ function CampaignCards() {
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Ticket: <strong className="text-deep-blue">N{c.ticket_price.toLocaleString()}</strong></span>
+                  <span className="text-xs text-gray-500">Ticket: <strong className="text-deep-blue">N{c.ticketPrice.toLocaleString()}</strong></span>
                   <Link href={`/campaigns/${c.id}`}>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
