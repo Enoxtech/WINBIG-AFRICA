@@ -48,7 +48,7 @@ export default function ProfileClient({ userId }: { userId: string }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateProfile(userId, { name, email, phone });
+      await updateProfile({ name, email, phone });
       setProfile((prev) => prev ? { ...prev, name, email, phone } : prev);
       setMsg('Profile updated successfully!');
       setEditing(false);
@@ -65,7 +65,7 @@ export default function ProfileClient({ userId }: { userId: string }) {
     }
     setSaving(true);
     try {
-      await updateBankDetails(userId, { bankName, accountNumber, accountName });
+      await updateBankDetails({ bankName, accountNumber, accountName });
       setProfile((prev) => prev ? { ...prev, bankName, accountNumber, accountName } : prev);
       setMsg('Bank details updated!');
       setEditingBank(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProfile, updateProfile, updateBankDetails } from '../../../api';
+import { getCurrentUser, updateProfile, updateBankDetails } from '../../../app/api';
 
 interface UserProfile {
   id: string;
@@ -26,18 +26,18 @@ export default function ProfileTab() {
   const [bankMode, setBankMode] = useState(false);
 
   const [form, setForm] = useState({ name: '', phone: '' });
-  const [bankForm, setBankForm] = useState({ bank_name: '', account_number: '', account_name: '' });
+  const [bankForm, setBankForm] = useState({ bankName: '', accountNumber: '', accountName: '' });
 
   useEffect(() => {
-    getProfile().then((data: any) => {
+    getCurrentUser().then((data: any) => {
       if (data?.user) {
         const u = data.user;
         setProfile(u);
         setForm({ name: u.name || '', phone: u.phone || '' });
         setBankForm({
-          bank_name: u.bank_name || '',
-          account_number: u.account_number || '',
-          account_name: u.account_name || ''
+          bankName: u.bank_name || '',
+          accountNumber: u.account_number || '',
+          accountName: u.account_name || ''
         });
       }
       setLoading(false);
@@ -192,24 +192,24 @@ export default function ProfileTab() {
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Bank Name</label>
               <input
-                value={bankForm.bank_name}
-                onChange={e => setBankForm({ ...bankForm, bank_name: e.target.value })}
+                value={bankForm.bankName}
+                onChange={e => setBankForm({ ...bankForm, bankName: e.target.value })}
                 className="w-full bg-[#0A0A0A] border border-[#D4AF37]/30 rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Account Number</label>
               <input
-                value={bankForm.account_number}
-                onChange={e => setBankForm({ ...bankForm, account_number: e.target.value })}
+                value={bankForm.accountNumber}
+                onChange={e => setBankForm({ ...bankForm, accountNumber: e.target.value })}
                 className="w-full bg-[#0A0A0A] border border-[#D4AF37]/30 rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Account Name</label>
               <input
-                value={bankForm.account_name}
-                onChange={e => setBankForm({ ...bankForm, account_name: e.target.value })}
+                value={bankForm.accountName}
+                onChange={e => setBankForm({ ...bankForm, accountName: e.target.value })}
                 className="w-full bg-[#0A0A0A] border border-[#D4AF37]/30 rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
@@ -217,7 +217,7 @@ export default function ProfileTab() {
               <button onClick={handleBankSave} disabled={saving} className="px-4 py-2 bg-[#D4AF37] text-[#0B1F3A] rounded-lg text-sm font-bold hover:bg-[#F4D03F] disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save'}
               </button>
-              <button onClick={() => { setBankMode(false); setBankForm({ bank_name: profile.bank_name || '', account_number: profile.account_number || '', account_name: profile.account_name || '' }); }} className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-600">
+              <button onClick={() => { setBankMode(false); setBankForm({ bankName: profile.bank_name || '', accountNumber: profile.account_number || '', accountName: profile.account_name || '' }); }} className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-600">
                 Cancel
               </button>
             </div>

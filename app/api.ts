@@ -148,27 +148,15 @@ export async function requestDeposit(userId: string, amount: number) {
   return { success: true, paymentUrl: `https://paystack.com/pay/winbig-${userId}` };
 }
 
-export async function getCurrentUser(userId: string) {
-  return {
-    id: userId,
-    name: 'Emeka Okonkwo',
-    email: 'emeka.okonkwo@gmail.com',
-    phone: '08031234567',
-    avatar: '',
-    bankName: 'GTBank',
-    accountNumber: '0123456789',
-    accountName: 'Emeka Okonkwo',
-    referralCode: 'EMEKA2026',
-    referredBy: 'OGUNNIRAN2025',
-    createdAt: '2025-11-01T00:00:00Z',
-  };
+export async function getCurrentUser() {
+  return getProfile();
 }
 
-export async function updateProfile(userId: string, data: { name?: string; email?: string; phone?: string }) {
+export async function updateProfile(data: { name?: string; email?: string; phone?: string }) {
   return { success: true, ...data };
 }
 
-export async function updateBankDetails(userId: string, data: { bankName: string; accountNumber: string; accountName: string }) {
+export async function updateBankDetails(data: { bankName: string; accountNumber: string; accountName: string }) {
   return { success: true, ...data };
 }
 
@@ -304,7 +292,7 @@ export async function initializePaystackPayment(amount: number, email: string, t
   }
 }
 
-export async function getProfile(userId: string) {
+export async function getProfile(_userId?: string) {
   const token = getToken();
   if (!token) return getMockUser();
   try {
