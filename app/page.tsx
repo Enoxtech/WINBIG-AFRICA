@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
-import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import Particles from './components/Particles';
 import UrgencyBanner from './components/UrgencyBanner';
@@ -12,11 +11,27 @@ import JackpotSpotlight from './components/JackpotSpotlight';
 import HowItWorks from './components/HowItWorks';
 import AppDownloadBanner from './components/AppDownloadBanner';
 import ErrorBoundary from './components/ErrorBoundary';
+import CampaignCard from './components/CampaignCard';
 import { getCampaigns } from './api';
 
 const Confetti = dynamic(() => import('canvas-confetti'), { ssr: false });
 
-const blurDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==';
+function normalizeCampaign(c: any) {
+  const prizeAmount = (c.prizeAmount ?? c.prize_amount ?? 0);
+  return {
+    id: c.id,
+    title: c.title,
+    description: c.description,
+    prize_amount: prizeAmount,
+    ticket_price: (c.ticketPrice ?? c.ticket_price ?? 100),
+    max_tickets: (c.maxTickets ?? c.max_tickets ?? 1000),
+    sold_tickets: (c.soldTickets ?? c.sold_tickets ?? 0),
+    draw_date: (c.drawDate ?? c.draw_date ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
+    status: c.status ?? 'active',
+    image_url: (c.imageUrl ?? c.image_url),
+    jackpot: c.jackpot ?? ((c.title?.toLowerCase().includes('jackpot') || false) || prizeAmount >= 5_000_000),
+  };
+}
 
 function AnimatedCounter({ end, suffix = '', prefix = '', formatFn }: { end: number; suffix?: string; prefix?: string; formatFn?: (n: number) => string }) {
   const [count, setCount] = useState(0);
@@ -58,22 +73,52 @@ function ConfettiTrigger() {
   return null;
 }
 
+function WinnerTicker() {
+  const winners = [
+    { name: 'Chioma A.', prize: 'N500,000', city: 'Lagos', time: '2h ago' },
+    { name: 'Emeka N.', prize: 'Toyota Camry 2025', city: 'Abuja', time: '5h ago' },
+    { name: 'Funke O.', prize: 'N1,000,000', city: 'Ibadan', time: '1d ago' },
+    { name: 'Segun K.', prize: 'iPhone 16 Pro Max', city: 'Port Harcourt', time: '1d ago' },
+    { name: 'Aisha M.', prize: 'N250,000', city: 'Kano', time: '2d ago' },
+    { name: 'Olumide T.', prize: 'N5,000,000', city: 'Lagos', time: '3d ago' },
+  ];
+  return (
+    <div className="bg-gold/10 border-y border-gold/20 py-6 overflow-hidden">
+      <div className="flex gap-8 animate-[scroll_30s_linear_infinite] whitespace-nowrap">
+        {[...winners, ...winners].map((w, i) => (
+          <span key={i} className="inline-flex items-center gap-2 text-deep-blue font-medium text-sm">
+            🎊 <strong>{w.name}</strong> from {w.city} won <strong>{w.prize}</strong>
+            <span className="text-gray-400 text-xs">• {w.time}</span>
+            <span className="mx-4 text-gold">⭐</span>
+          </span>
+        ))}
+      </div>
+      <style>{`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    getCampaigns()
+      .then(d => setCampaigns((d.campaigns || []).slice(0, 3).map((c: any) => normalizeCampaign(c))))
+      .catch(() => {});
+  }, []);
 
   const stats = [
     { value: 2500000000, prefix: '₦', suffix: '+', label: 'Total Won', icon: '🏆', formatFn: (n: number) => n >= 1e9 ? `₦${(n / 1e9).toFixed(1)}B+` : `₦${n.toLocaleString()}+` },
     { value: 25000, suffix: '+', label: 'Active Players', icon: '👥' },
     { value: 120, suffix: '+', label: 'Campaigns Completed', icon: '🎯' },
     { value: 98, suffix: '%', label: 'Payout Rate', icon: '⚡' },
-  ];
-
-  const steps = [
-    { num: '01', icon: '👤', title: 'Sign Up', desc: 'Create your free account in seconds. No hidden fees.' },
-    { num: '02', icon: '🎟', title: 'Buy a Ticket', desc: 'Pick a campaign and purchase your raffle ticket(s).' },
-    { num: '03', icon: '⏳', title: 'Wait for Draw', desc: 'Live draws happen weekly. Your name could be next!' },
-    { num: '04', icon: '🎉', title: 'Win & Celebrate', desc: 'Winners are announced instantly. Withdraw winnings fast!' },
   ];
 
   const testimonials = [
@@ -87,110 +132,111 @@ export default function HomePage() {
       {mounted && <ConfettiTrigger />}
       <UrgencyBanner />
       <TrustBadges />
+
       {/* HERO */}
       <ErrorBoundary>
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <Particles />
-        <div className="absolute inset-0 bg-deep-blue" />
-        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.4) 0%, transparent 60%)' }} />
-        <motion.div
-          animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-1/4 left-1/4 w-72 h-72 bg-gold/10 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gold/5 rounded-full blur-3xl"
-        />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
+          <Particles />
+          <div className="absolute inset-0 bg-deep-blue" />
+          <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.4) 0%, transparent 60%)' }} />
           <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8"
-          >
-            <motion.span
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-2 h-2 bg-gold rounded-full"
-            />
-            <span className="text-gold text-sm font-medium">Live Draws Every Week</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.35, duration: 0.7 }}
-            className="text-5xl sm:text-7xl font-black text-white leading-tight mb-4"
-          >
-            Your Dreams Start
-            <br />
-            <span className="bg-gradient-to-r from-gold via-yellow-300 to-gold bg-clip-text text-transparent bg-[length:200%_auto] animate-pulse">
-              With One Ticket
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto mb-10"
-          >
-            Nigeria&apos;s most trusted lottery platform. Win life-changing prizes from as little as N100. New winners every week.
-          </motion.p>
-
+            animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.1, 1] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-1/4 left-1/4 w-72 h-72 bg-gold/10 rounded-full blur-3xl"
+          />
           <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.65, duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link href="/campaigns">
-              <motion.button
-                whileHover={{ scale: 1.06, boxShadow: '0 0 40px rgba(212,175,55,0.5)' }}
-                whileTap={{ scale: 0.96 }}
-                className="relative bg-gold text-deep-blue font-black text-base px-10 py-4 rounded-2xl overflow-hidden group"
-              >
-                <span className="relative z-10">Enter a Campaign</span>
-              </motion.button>
-            </Link>
-            <Link href="/about">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                className="border-2 border-white/30 text-white font-semibold text-base px-10 py-4 rounded-2xl hover:border-gold hover:text-gold transition-all"
-              >
-                How It Works
-              </motion.button>
-            </Link>
-          </motion.div>
+            animate={{ x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gold/5 rounded-full blur-3xl"
+          />
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="text-gray-500 text-sm mt-6"
-          >
-            🔒 Secured by Supabase &nbsp;|&nbsp; ⚡ Instant Payouts &nbsp;|&nbsp; 🇳🇬 Made in Nigeria
-          </motion.p>
-        </div>
-
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
+          <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
             <motion.div
-              animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-3 bg-gold rounded-full"
-            />
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8"
+            >
+              <motion.span
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="w-2 h-2 bg-gold rounded-full"
+              />
+              <span className="text-gold text-sm font-medium">Live Draws Every Week</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.35, duration: 0.7 }}
+              className="text-5xl sm:text-7xl font-black text-white leading-tight mb-4"
+            >
+              Your Dreams Start
+              <br />
+              <span className="bg-gradient-to-r from-gold via-yellow-300 to-gold bg-clip-text text-transparent bg-[length:200%_auto] animate-pulse">
+                With One Ticket
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto mb-10"
+            >
+              Nigeria&apos;s most trusted lottery platform. Win life-changing prizes from as little as N100. New winners every week.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.65, duration: 0.6 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Link href="/campaigns">
+                <motion.button
+                  whileHover={{ scale: 1.06, boxShadow: '0 0 40px rgba(212,175,55,0.5)' }}
+                  whileTap={{ scale: 0.96 }}
+                  className="relative bg-gold text-deep-blue font-black text-base px-10 py-4 rounded-2xl overflow-hidden group"
+                >
+                  <span className="relative z-10">Enter a Campaign</span>
+                </motion.button>
+              </Link>
+              <Link href="/about">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="border-2 border-white/30 text-white font-semibold text-base px-10 py-4 rounded-2xl hover:border-gold hover:text-gold transition-all"
+                >
+                  How It Works
+                </motion.button>
+              </Link>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9 }}
+              className="text-gray-500 text-sm mt-6"
+            >
+              🔒 Secured by Supabase &nbsp;|&nbsp; ⚡ Instant Payouts &nbsp;|&nbsp; 🇳🇬 Made in Nigeria
+            </motion.p>
           </div>
-        </motion.div>
-      </section>
+
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          >
+            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
+              <motion.div
+                animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="w-1.5 h-3 bg-gold rounded-full"
+              />
+            </div>
+          </motion.div>
+        </section>
       </ErrorBoundary>
 
       {/* STATS BAR */}
@@ -227,7 +273,7 @@ export default function HomePage() {
             className="text-center mb-10"
           >
             <span className="text-gold font-semibold text-sm uppercase tracking-wider">Explore by Category</span>
-            <h2 className="section-title mt-2">Choose Your Dream Prize</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-deep-blue mt-2 mb-3">Choose Your Dream Prize</h2>
             <p className="text-gray-500 mt-2 max-w-xl mx-auto">From life-changing jackpots to everyday tech — pick your prize and start winning.</p>
           </motion.div>
 
@@ -289,7 +335,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PRIZE TIER SHOWCASE */}
+      {/* LIVE CAMPAIGNS */}
       <section id="campaigns" className="bg-light-gray py-20">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -299,11 +345,23 @@ export default function HomePage() {
             className="text-center mb-14"
           >
             <span className="text-gold font-semibold text-sm uppercase tracking-wider">Act Now</span>
-            <h2 className="section-title mt-2">Live Campaigns</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-deep-blue mt-2 mb-3">Live Campaigns</h2>
             <p className="text-gray-500 mt-2 max-w-xl mx-auto">Grab your ticket before time runs out. Every draw is live and transparent.</p>
           </motion.div>
 
-          <CampaignCards />
+          {campaigns.length === 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white rounded-2xl h-96 animate-pulse border border-gray-100" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {campaigns.map((campaign, i) => (
+                <CampaignCard key={campaign.id} campaign={campaign} />
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-10">
             <Link href="/campaigns">
@@ -318,11 +376,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
       <AffiliateBanner />
-
+      <JackpotSpotlight />
       <HowItWorks />
-
-      {/* WINNERS TICKER */}
       <WinnerTicker />
 
       {/* TESTIMONIALS */}
@@ -335,7 +392,7 @@ export default function HomePage() {
             className="text-center mb-14"
           >
             <span className="text-gold font-semibold text-sm uppercase tracking-wider">Real Winners</span>
-            <h2 className="section-title mt-2">What Winners Say</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-deep-blue mt-2 mb-3">What Winners Say</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -390,176 +447,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-    </div>
-  );
-  <AppDownloadBanner />
-}
-
-// Campaign Cards with 3D Tilt + Countdown + Lazy Images
-function CampaignCards() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [countdowns, setCountdowns] = useState<Record<number, { days: number; hours: number; mins: number; secs: number }>>({});
-  const [tilt, setTilt] = useState<Record<number, { rotateX: number; rotateY: number }>>({});
-
-  useEffect(() => {
-    getCampaigns()
-      .then(d => setCampaigns((d.campaigns || []).slice(0, 3)))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newCountdowns: Record<number, any> = {};
-      campaigns.forEach(c => {
-        const diff = new Date(c.endDate).getTime() - Date.now();
-        if (diff <= 0) { newCountdowns[c.id] = { days: 0, hours: 0, mins: 0, secs: 0 }; return; }
-        newCountdowns[c.id] = {
-          days: Math.floor(diff / 86400000),
-          hours: Math.floor((diff % 86400000) / 3600000),
-          mins: Math.floor((diff % 3600000) / 60000),
-          secs: Math.floor((diff % 60000) / 1000),
-        };
-      });
-      setCountdowns(newCountdowns);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [campaigns]);
-
-  const handleMouseMove = (id: number, e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt(prev => ({ ...prev, [id]: { rotateX: -y * 12, rotateY: x * 12 } }));
-  };
-  const handleMouseLeave = (id: number) => {
-    setTilt(prev => ({ ...prev, [id]: { rotateX: 0, rotateY: 0 } }));
-  };
-
-  if (!campaigns.length) return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2xl h-96 animate-pulse border border-gray-100" />)}
-    </div>
-  );
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {campaigns.map((c, i) => {
-        const pct = Math.round((c.ticketsSold / c.maxTickets) * 100);
-        const cd = countdowns[c.id] || { days: 0, hours: 0, mins: 0, secs: 0 };
-        const isExpired = new Date(c.endDate).getTime() <= Date.now();
-        const t = tilt[c.id] || { rotateX: 0, rotateY: 0 };
-
-        return (
-          <div
-            key={c.id}
-            onMouseMove={(e) => handleMouseMove(c.id, e)}
-            onMouseLeave={() => handleMouseLeave(c.id)}
-            style={{ perspective: '800px' }}
-          >
-            <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              animate={{ rotateX: t.rotateX, rotateY: t.rotateY }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl transition-shadow origin-center"
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <div className="h-44 bg-gray-200 relative overflow-hidden">
-                <Image
-                  src={c.imageUrl || '/placeholder.jpg'}
-                  alt={c.title}
-                  fill
-                  className="object-cover"
-                  placeholder="blur"
-                  blurDataURL={blurDataURL}
-                />
-                {c.status === 'active' && (
-                  <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
-                  </span>
-                )}
-                {pct > 85 && (
-                  <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                    Almost Full!
-                  </span>
-                )}
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-deep-blue text-base mb-1">{c.title}</h3>
-
-                {/* Countdown Timer */}
-                {isExpired ? (
-                  <div className="text-red-500 font-bold text-sm mb-2 animate-pulse">🎯 DRAW LIVE!</div>
-                ) : (
-                  <div className="flex gap-1 text-xs mb-2">
-                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{cd.days}d</span>
-                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{String(cd.hours).padStart(2,'0')}h</span>
-                    <span className="bg-deep-blue text-white px-1.5 py-0.5 rounded font-bold">{String(cd.mins).padStart(2,'0')}m</span>
-                    <span className="bg-gold text-deep-blue px-1.5 py-0.5 rounded font-bold">{String(cd.secs).padStart(2,'0')}s</span>
-                  </div>
-                )}
-
-                {/* Progress bar */}
-                <div className="w-full h-2 bg-gray-100 rounded-full mb-3 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${pct}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, delay: i * 0.1 }}
-                    className="h-full bg-gradient-to-r from-gold to-yellow-400 rounded-full"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Ticket: <strong className="text-deep-blue">N{c.ticketPrice.toLocaleString()}</strong></span>
-                  <Link href={`/campaigns/${c.id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-gold text-deep-blue font-semibold text-xs px-4 py-2 rounded-xl"
-                    >
-                      Enter →
-                    </motion.button>
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// Winner Ticker
-function WinnerTicker() {
-  const winners = [
-    { name: 'Chioma A.', prize: 'N500,000', city: 'Lagos', time: '2h ago' },
-    { name: 'Emeka N.', prize: 'Toyota Camry 2025', city: 'Abuja', time: '5h ago' },
-    { name: 'Funke O.', prize: 'N1,000,000', city: 'Ibadan', time: '1d ago' },
-    { name: 'Segun K.', prize: 'iPhone 16 Pro Max', city: 'Port Harcourt', time: '1d ago' },
-    { name: 'Aisha M.', prize: 'N250,000', city: 'Kano', time: '2d ago' },
-    { name: 'Olumide T.', prize: 'N5,000,000', city: 'Lagos', time: '3d ago' },
-  ];
-
-  return (
-    <div className="bg-gold/10 border-y border-gold/20 py-6 overflow-hidden">
-      <div className="flex gap-8 animate-[scroll_30s_linear_infinite] whitespace-nowrap">
-        {[...winners, ...winners].map((w, i) => (
-          <span key={i} className="inline-flex items-center gap-2 text-deep-blue font-medium text-sm">
-            🎊 <strong>{w.name}</strong> from {w.city} won <strong>{w.prize}</strong>
-            <span className="text-gray-400 text-xs">• {w.time}</span>
-            <span className="mx-4 text-gold">⭐</span>
-          </span>
-        ))}
-      </div>
-      <style>{`
-        @keyframes scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
     </div>
   );
 }
