@@ -30,8 +30,9 @@ export default function ProfileTab() {
 
   useEffect(() => {
     getCurrentUser().then((data: any) => {
-      if (data?.user) {
-        const u = data.user;
+      // API returns { user: ... }, mock returns user directly
+      const u = data?.user ?? data;
+      if (u?.id) {
         setProfile(u);
         setForm({ name: u.name || '', phone: u.phone || '' });
         setBankForm({
