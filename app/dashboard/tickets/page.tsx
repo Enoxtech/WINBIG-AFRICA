@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+
 import { useAuth } from '../../context/AuthContext';
 import { getMyTickets } from '../../api';
 
@@ -110,7 +110,6 @@ export default function MyTickets() {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 }

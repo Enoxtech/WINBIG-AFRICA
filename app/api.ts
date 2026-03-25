@@ -121,7 +121,22 @@ export async function getMyTickets(userId: string) {
       { id: '5', campaignTitle: '₦50,000,000 Jackpot', ticketNumber: 'JK-0530', status: 'active', campaignId: 'jackpot' },
     ],
   };
-  return fetchWithFallback(`/api/tickets/user/${userId}`, fallback);
+  const token = await getToken();
+  try {
+    const res = await fetch(`${API_BASE}/api/tickets/user/${userId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) return fallback;
+    const data = await res.json();
+    return { tickets: Array.isArray(data) ? data : (data?.tickets || fallback.tickets) };
+  } catch {
+    return fallback;
+  }
 }
 
 export async function getNotifications(userId: string) {
@@ -328,7 +343,7 @@ export async function initializePaystackPayment(amount: number, email: string, t
 }
 
 export async function getProfile(_userId?: string) {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return getMockUser();
   try {
     const res = await fetch(`${API_BASE}/users/me`, {

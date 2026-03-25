@@ -26,12 +26,14 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((r) => setTimeout(r, 800));
-      // Mock successful registration — in production this calls your auth API
-      const mockUser: User = { id: '1', name: username, email, role: 'user' };
-      const mockToken = 'mock_jwt_token_' + Date.now();
-      login(mockToken, mockUser);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: username, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Registration failed.'); return; }
+      login(data.token, data.user);
       router.push('/dashboard');
     } catch { setError('Registration failed. Please try again.'); }
     finally { setLoading(false); }
@@ -119,7 +121,7 @@ export default function RegisterPage() {
                 <p className="text-gray-500 text-sm">Join 25,000+ players already winning big</p>
               </div>
 
-              {/* Social Login Buttons - Feature 13 */}
+              {/* Social Login Buttons */}
               <div className="space-y-3 mb-6">
                 <button
                   onClick={() => handleSocialLogin('Google')}
