@@ -12,10 +12,10 @@ const io = new SocketIOServer(httpServer, {
   cors: { origin: '*' }
 });
 
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 const JWT_SECRET = 'winbig-africa-jwt-secret-2026';
 const SUPABASE_URL = 'https://wxkevhhysawbfuobnydo.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4a2V2aGh5c2F3YmZ1b2JueWRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjMwNjgsImV4cCI6MjA4ODc2ODU5MH0.VxhMOWdHLtkzWgf8yULRj6yIZ80cs3RWTVPhqLLPzgU';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4a2V2aGh5c2F3YmZ1b2JueWRvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDAyMzA2OCwiZXhwIjoyMDg5NTk5MDY4fQ.NsP0NIaWzahKc9ud4thUqc4QcqmpH0nh7VmImseaHA4';
 
 // ─── Mock Data Store (used when Supabase is unavailable) ───
 const mockUsers: any[] = [];
@@ -233,13 +233,9 @@ async function supabaseInsert(table: string, data: any): Promise<any> {
     });
     if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
     return res.json();
-  } catch {
-    // Fallback to mock data
-    if (table === 'wb_users') { mockUsers.push(data); return [data]; }
-    if (table === 'wb_campaigns') { mockCampaigns.push(data); return [data]; }
-    if (table === 'wb_tickets') { mockTickets.push(data); return [data]; }
-    if (table === 'wb_draws') { mockDraws.push(data); return [data]; }
-    return [data];
+  } catch (e: any) {
+    console.error('supabaseInsert failed:', e.message);
+    throw e;
   }
 }
 
@@ -305,14 +301,14 @@ app.post('/api/auth/register', async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'All fields required' });
     }
-    const existing = await supabaseFetch('wb_users', `email=eq.${email}`);
+    const existing = await supabaseFetch('wb_users', `email=eq.${encodeURIComponent(email)}`);
     if (existing?.length > 0) {
       return res.status(400).json({ error: 'Email already registered' });
     }
     const password_hash = await bcrypt.hash(password, 10);
     const user = await supabaseInsert('wb_users', {
       id: uuidv4(),
-      name,
+      full_name: name,
       email,
       password_hash,
       role: 'user',
@@ -338,7 +334,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user.id, name: user.full_name || user.name, email: user.email, role: user.role } });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -550,52 +546,70 @@ app.get('/api/campaigns/:id', async (req, res) => {
 // Ticket Routes
 app.post('/api/tickets/purchase', authMiddleware, async (req, res) => {
   try {
-    const { campaign_id, quantity } = req.body;
+    const { campaignId, campaign_id, quantity = 1 } = req.body;
+    const resolvedCampaignId = campaignId || campaign_id;
+    if (!resolvedCampaignId) {
+      return res.status(400).json({ error: 'Campaign ID is required' });
+    }
     const userId = req.user.id;
 
-    const campaigns = await supabaseFetch('wb_campaigns', `id=eq.${campaign_id}`);
+    const campaigns = await supabaseFetch('wb_campaigns', `id=eq.${resolvedCampaignId}`);
     if (!campaigns || campaigns.length === 0) {
       return res.status(404).json({ error: 'Campaign not found' });
     }
     const campaign = campaigns[0];
 
-    const existingTickets = await supabaseFetch('wb_tickets', `campaign_id=eq.${campaign_id}&select=ticket_number`);
-    const soldCount = existingTickets?.length || 0;
+    if (campaign.status !== 'active') {
+      return res.status(400).json({ error: 'Campaign is not active' });
+    }
+
+    // Count existing tickets for this campaign (uses quantity column)
+    const existingTickets = await supabaseFetch('wb_tickets', `campaign_id=eq.${resolvedCampaignId}&select=quantity`);
+    const soldCount = existingTickets?.reduce((sum: number, t: any) => sum + (t.quantity || 1), 0) || 0;
 
     if (soldCount + quantity > campaign.total_tickets) {
       return res.status(400).json({ error: 'Not enough tickets available' });
     }
 
-    const generatedTickets = [];
-    const usedNumbers = new Set(existingTickets?.map((t: any) => t.ticket_number) || []);
+    // Calculate total cost
+    const totalPrice = Number(campaign.ticket_price) * quantity;
 
-    for (let i = 0; i < quantity; i++) {
-      let ticketNumber: string;
-      do {
-        ticketNumber = String(Math.floor(100000 + Math.random() * 900000));
-      } while (usedNumbers.has(ticketNumber));
-      usedNumbers.add(ticketNumber);
-      generatedTickets.push({
-        id: uuidv4(),
-        campaign_id,
-        user_id: userId,
-        ticket_number: ticketNumber,
-        created_at: new Date().toISOString()
-      });
+    // Get user wallet and check balance
+    const wallets = await supabaseFetch('wb_wallets', `user_id=eq.${userId}`);
+    const wallet = wallets?.[0];
+    if (!wallet || Number(wallet.balance) < totalPrice) {
+      return res.status(400).json({ error: `Insufficient balance. You need ₦${totalPrice.toLocaleString()} but have ₦${wallet ? Number(wallet.balance).toLocaleString() : '0'}` });
     }
 
-    for (const ticket of generatedTickets) {
-      await supabaseInsert('wb_tickets', ticket);
-    }
+    // Insert ticket(s) — schema uses `quantity` column, not individual ticket numbers
+    const ticket = await supabaseInsert('wb_tickets', {
+      campaign_id: resolvedCampaignId,
+      user_id: userId,
+      quantity,
+      total_price: totalPrice,
+      created_at: new Date().toISOString()
+    });
+
+    // Debit wallet balance and update total_spent
+    const newBalance = Number(wallet.balance) - totalPrice;
+    const newSpent = Number(wallet.total_spent || 0) + totalPrice;
+    await supabaseUpdate('wb_wallets', {
+      balance: newBalance,
+      total_spent: newSpent
+    }, `user_id=eq.${userId}`);
 
     // Update campaign sold_tickets
     const newSoldCount = soldCount + quantity;
-    await supabaseUpdate('wb_campaigns', { sold_tickets: newSoldCount }, `id=eq.${campaign_id}`);
+    await supabaseUpdate('wb_campaigns', { sold_tickets: newSoldCount }, `id=eq.${resolvedCampaignId}`);
 
     // Broadcast update
-    broadcastTicketSale(campaign_id, newSoldCount);
+    broadcastTicketSale(resolvedCampaignId, newSoldCount);
 
-    res.json({ tickets: generatedTickets, message: 'Tickets purchased successfully' });
+    res.json({
+      ticket: ticket[0] || ticket,
+      balance: newBalance,
+      message: `🎉 ${quantity} ticket${quantity > 1 ? 's' : ''} purchased successfully!`
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -719,98 +733,24 @@ app.post('/api/admin/draws/:id', authMiddleware, adminMiddleware, async (req, re
   }
 });
 
-// ─── Mock Withdrawals Store ───
-type WithdrawalStatus = 'pending' | 'approved' | 'rejected' | 'paid';
-interface Withdrawal {
-  id: string;
-  user_id: string;
-  user_name: string;
-  user_email: string;
-  amount: number;
-  bank_name: string;
-  account_number: string;
-  account_name: string;
-  status: WithdrawalStatus;
-  created_at: string;
-  processed_at?: string;
-  note?: string;
-}
-
-const mockWithdrawals: Withdrawal[] = [
-  {
-    id: 'wd-001',
-    user_id: 'user-001',
-    user_name: 'Chidi Okafor',
-    user_email: 'chidi.okafor@gmail.com',
-    amount: 50000,
-    bank_name: 'Access Bank',
-    account_number: '0741234567',
-    account_name: 'Chidi Okafor',
-    status: 'pending',
-    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wd-002',
-    user_id: 'user-002',
-    user_name: 'Blessing Obi',
-    user_email: 'blessing.obi@yahoo.com',
-    amount: 120000,
-    bank_name: 'GTBank',
-    account_number: '0023123456',
-    account_name: 'Blessing Obi',
-    status: 'pending',
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wd-003',
-    user_id: 'user-003',
-    user_name: 'Emeka Nwosu',
-    user_email: 'emeka.nwosu@gmail.com',
-    amount: 25000,
-    bank_name: 'UBA',
-    account_number: '2081234567',
-    account_name: 'Emeka Chukwuemeka Nwosu',
-    status: 'approved',
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    processed_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wd-004',
-    user_id: 'user-004',
-    user_name: 'Ngozi Adichukwu',
-    user_email: 'ngozi.adichukwu@gmail.com',
-    amount: 85000,
-    bank_name: 'First Bank',
-    account_number: '3045678901',
-    account_name: 'Ngozi Adichukwu',
-    status: 'paid',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    processed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'wd-005',
-    user_id: 'user-005',
-    user_name: 'Ayomide Bello',
-    user_email: 'ayomide.bello@icloud.com',
-    amount: 15000,
-    bank_name: 'Opay',
-    account_number: '9012345678',
-    account_name: 'Ayomide Bello',
-    status: 'rejected',
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    processed_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    note: 'Account number does not match registered name.',
-  },
-];
-
 // ─── Wallet & Payment Endpoints ───
 
 // Get current user's wallet
 app.get('/api/wallet', authMiddleware, async (req, res) => {
   try {
-    const user = mockUsers.find(u => u.id === req.user.id);
-    const wallet = user?.wallet || { balance: 0, total_won: 0, total_withdrawn: 0, total_spent: 0 };
-    res.json(wallet);
+    const wallets = await supabaseFetch('wb_wallets', `user_id=eq.${req.user.id}`);
+    if (wallets && wallets.length > 0) {
+      return res.json(wallets[0]);
+    }
+    // Create wallet if it doesn't exist
+    const newWallet = await supabaseInsert('wb_wallets', {
+      user_id: req.user.id,
+      balance: 0,
+      total_won: 0,
+      total_withdrawn: 0,
+      total_spent: 0
+    });
+    res.json(newWallet[0] || newWallet);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -979,6 +919,11 @@ app.get('/api/admin/campaigns/:id/participants', authMiddleware, adminMiddleware
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Healthcheck endpoint (used by Railway to verify deployment)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
 httpServer.listen(PORT, () => {
