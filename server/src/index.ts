@@ -191,7 +191,23 @@ async function supabaseFetch(table: string, params?: string): Promise<any> {
     return res.json();
   } catch {
     // Fallback to mock data
-    if (table === 'wb_users') return mockUsers;
+    if (table === 'wb_users') {
+      // Real Supabase query for wb_users
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/wb_users${params ? '?' + params : ''}`;
+        const res = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+        return res.json();
+      } catch {
+        return []; // Return empty on error, don't fall back to mock
+      }
+    }
     if (table === 'wb_campaigns') {
       let result = [...mockCampaigns];
       if (params?.includes('id=eq.')) {
@@ -454,7 +470,8 @@ app.delete('/api/notifications/:id', authMiddleware, async (req, res) => {
 // ─── User Profile ───
 app.get('/api/users/me', authMiddleware, async (req, res) => {
   try {
-    const user = mockUsers.find(u => u.id === req.user.id);
+    const users = await supabaseFetch('wb_users', `id=eq.${req.user.id}`);
+    const user = users?.[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
     const { password_hash, ...safeUser } = user;
     res.json(safeUser);
@@ -465,12 +482,15 @@ app.get('/api/users/me', authMiddleware, async (req, res) => {
 
 app.patch('/api/users/me', authMiddleware, async (req, res) => {
   try {
-    const user = mockUsers.find(u => u.id === req.user.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
     const { full_name, phone, date_of_birth } = req.body;
-    if (full_name) user.name = full_name;
-    if (phone !== undefined) user.phone = phone;
-    if (date_of_birth !== undefined) user.date_of_birth = date_of_birth;
+    const updates: any = {};
+    if (full_name) updates.full_name = full_name;
+    if (phone !== undefined) updates.phone = phone;
+    if (date_of_birth !== undefined) updates.date_of_birth = date_of_birth;
+    await supabaseUpdate('wb_users', updates, `id=eq.${req.user.id}`);
+    const users = await supabaseFetch('wb_users', `id=eq.${req.user.id}`);
+    const user = users?.[0];
+    if (!user) return res.status(404).json({ error: 'User not found' });
     const { password_hash, ...safeUser } = user;
     res.json(safeUser);
   } catch (err: any) {
@@ -480,14 +500,12 @@ app.patch('/api/users/me', authMiddleware, async (req, res) => {
 
 app.post('/api/users/me/bank', authMiddleware, async (req, res) => {
   try {
-    const user = mockUsers.find(u => u.id === req.user.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
     const { bank_name, account_number, account_name } = req.body;
     if (!bank_name || !account_number || !account_name) {
       return res.status(400).json({ error: 'All bank fields required' });
     }
-    user.bank = { bank_name, account_number, account_name };
-    res.json({ success: true, bank: user.bank });
+    await supabaseUpdate('wb_users', { bank_name, account_number, account_name }, `id=eq.${req.user.id}`);
+    res.json({ success: true, bank: { bank_name, account_number, account_name } });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

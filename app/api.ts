@@ -203,11 +203,33 @@ export async function getCurrentUser() {
 }
 
 export async function updateProfile(data: { name?: string; email?: string; phone?: string }) {
-  return { success: true, ...data };
+  const token = await getToken();
+  if (!token) return { success: false, error: 'Not authenticated' };
+  const res = await fetch(`${API_BASE}/users/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update profile');
+  return res.json();
 }
 
 export async function updateBankDetails(data: { bankName: string; accountNumber: string; accountName: string }) {
-  return { success: true, ...data };
+  const token = await getToken();
+  if (!token) return { success: false, error: 'Not authenticated' };
+  const res = await fetch(`${API_BASE}/users/me/bank`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to save bank details');
+  return res.json();
 }
 
 export async function getReferralStats(userId: string) {
