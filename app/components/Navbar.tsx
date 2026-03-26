@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import WalletModal from './WalletModal';
 
 export default function Navbar() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const { balance } = useWallet();
   const [scrolled, setScrolled] = useState(false);
@@ -244,7 +246,7 @@ export default function Navbar() {
                     </motion.button>
                   </Link>
                   <button
-                    onClick={logout}
+                    onClick={() => { logout(); router.push('/login'); }}
                     className="text-gray-400 hover:text-red-400 transition-colors text-xs font-medium"
                     title="Logout"
                   >
@@ -354,7 +356,7 @@ export default function Navbar() {
                       <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 text-gray-300 hover:text-gold hover:bg-white/5 transition-colors px-3 py-2.5 rounded-lg text-sm font-medium">📊 Dashboard</Link>
                       <Link href="/campaigns" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 text-gray-300 hover:text-gold hover:bg-white/5 transition-colors px-3 py-2.5 rounded-lg text-sm font-medium">🎟️ Buy Tickets</Link>
                     </div>
-                    <button onClick={() => { logout(); setMobileOpen(false); }} className="w-full text-left text-red-400 hover:bg-red-500/10 transition-colors px-3 py-2.5 rounded-lg text-sm font-medium mt-1">
+                    <button onClick={() => { logout(); router.push('/login'); setMobileOpen(false); }} className="w-full text-left text-red-400 hover:bg-red-500/10 transition-colors px-3 py-2.5 rounded-lg text-sm font-medium mt-1">
                       🚪 Logout
                     </button>
                   </>

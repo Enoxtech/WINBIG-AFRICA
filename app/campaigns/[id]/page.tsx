@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CountdownTimer from '../../components/CountdownTimer';
@@ -26,8 +26,16 @@ interface Campaign {
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const { user, token } = useAuth();
   const { balance, deduct, credit } = useWallet();
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!user || !token) {
+      router.push('/login');
+    }
+  }, [user, token, router]);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);

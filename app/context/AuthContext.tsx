@@ -1,6 +1,18 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// Lightweight JWT expiry check without external dependency
+function isTokenExpired(token: string): boolean {
+  try {
+    const payloadB64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(atob(payloadB64));
+    const now = Date.now() / 1000;
+    return !!(payload.exp && payload.exp < now);
+  } catch {
+    return true; // treat invalid tokens as expired
+  }
+}
+
 interface User {
   id: string;
   name: string;
@@ -26,9 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem('wb_token');
     const storedUser = localStorage.getItem('wb_user');
+
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        // Validate JWT is not expired
+        if (isTokenExpired(storedToken)) {
+          // Token expired — clear and stay logged out
+          localStorage.removeItem('wb_token');
+          localStorage.removeItem('wb_user');
+        } else {
+          // Valid token — load user from localStorage
+          const userData = JSON.parse(storedUser);
+          setToken(storedToken);
+          setUser(userData);
+        }
+      } catch {
+        // Invalid token — clear and stay logged out
+        localStorage.removeItem('wb_token');
+        localStorage.removeItem('wb_user');
+      }
     }
     setIsLoading(false);
   }, []);

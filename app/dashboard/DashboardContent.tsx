@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import NotificationBell from '../components/NotificationBell';
 import CampaignsTab from './components/CampaignsTab';
 import ProfileTab from './components/ProfileTab';
 import ReferralStatsWidget from './components/ReferralStatsWidget';
+import { useAuth } from '../context/AuthContext';
 
 const WalletTab = dynamic(() => import('./wallet/WalletClient'), { ssr: false });
 
@@ -90,17 +92,31 @@ function OverviewTab({ userId }: { userId: string }) {
 }
 
 export default function DashboardContent() {
+  const router = useRouter();
+  const { user, token, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [userId, setUserId] = useState<string>('');
   const [userName, setUserName] = useState<string>('Player');
 
+  // Redirect unauthenticated users to login
   useEffect(() => {
-    const u = getMockUser();
-    if (u) {
-      setUserId(u.id || '');
-      setUserName(u.name?.split(' ')[0] || 'Player');
+    if (!isLoading && (!user || !token)) {
+      router.push('/login');
     }
-  }, []);
+  }, [user, token, isLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      setUserId(user.id || '');
+      setUserName(user.name?.split(' ')[0] || 'Player');
+    } else {
+      const u = getMockUser();
+      if (u) {
+        setUserId(u.id || '');
+        setUserName(u.name?.split(' ')[0] || 'Player');
+      }
+    }
+  }, [user]);
 
   const tabs = [
     { id: 'overview', label: '📊 Overview' },

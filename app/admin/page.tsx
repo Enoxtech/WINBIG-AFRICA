@@ -2,10 +2,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
 import {
   getAdminDashboard,
   getAdminUsers,
@@ -107,9 +107,16 @@ const NOTIF_ICONS: Record<string, string> = {
 };
 
 export default function AdminPage() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isLoading } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<'overview' | 'campaigns' | 'users' | 'create' | 'winners' | 'settings'>('overview');
+
+  // Redirect non-admins and unauthenticated users
+  useEffect(() => {
+    if (!isLoading && (!user || user.role !== 'admin')) {
+      router.push('/admin/login');
+    }
+  }, [user, isLoading, router]);
   const [stats, setStats] = useState<DashboardStats>({ total_users: 0, total_campaigns: 0, total_tickets: 0, total_revenue: 0 });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [users, setUsers] = useState<User[]>([]);

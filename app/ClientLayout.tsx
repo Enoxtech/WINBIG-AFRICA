@@ -1,5 +1,6 @@
 'use client';
 import { AuthProvider } from './context/AuthContext';
+import { WalletProvider } from './context/WalletContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollProgressBar from './components/ScrollProgressBar';
@@ -11,18 +12,20 @@ import ClientPageTransition from './components/ClientPageTransition';
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <SoundProvider>
-        <Particles />
-        <ScrollProgressBar />
-        <CursorTrail />
-        <Navbar />
-        <ClientPageTransition>
-          <main className="pt-16">
-            {children}
-          </main>
-        </ClientPageTransition>
-        <Footer />
-      </SoundProvider>
+      <WalletProvider>
+        <SoundProvider>
+          <Particles />
+          <ScrollProgressBar />
+          <CursorTrail />
+          <Navbar />
+          <ClientPageTransition>
+            <main className="pt-16">
+              {children}
+            </main>
+          </ClientPageTransition>
+          <Footer />
+        </SoundProvider>
+      </WalletProvider>
     </AuthProvider>
   );
 }
