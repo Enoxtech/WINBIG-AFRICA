@@ -520,10 +520,11 @@ app.get('/api/referrals/stats', authMiddleware, async (req, res) => {
 // Seed endpoint - creates demo campaigns in Supabase
 app.post('/api/seed', async (_req, res) => {
   try {
+    const { v4: uuidv4 } = await import('uuid');
     const demoCampaigns = [
-      { id: 'c0000001-0000-0000-0000-000000000001', title: '🎰 Weekly Jackpot', description: 'Weekly mega jackpot raffle with ₦5,000,000 prize pool!', ticket_price: 500, total_tickets: 1000, sold_tickets: 342, status: 'active', end_date: '2026-04-02T20:00:00Z', image_url: 'https://placehold.co/800x400/0B1F3A/D4AF37?text=Weekly+Jackpot', category: 'jackpot', prize_pool: 5000000, requirements: '{}' },
-      { id: 'c0000002-0000-0000-0000-000000000002', title: '💎 Daily Draw', description: 'Daily instant win - ₦50,000 guaranteed prize!', ticket_price: 100, total_tickets: 500, sold_tickets: 89, status: 'active', end_date: '2026-03-27T20:00:00Z', image_url: 'https://placehold.co/800x400/0B1F3A/D4AF37?text=Daily+Draw', category: 'daily', prize_pool: 50000, requirements: '{}' },
-      { id: 'c0000003-0000-0000-0000-000000000003', title: '🚀 Mega Launch', description: 'Grand opening special - ₦10,000,000 mega prize!', ticket_price: 1000, total_tickets: 2000, sold_tickets: 1204, status: 'active', end_date: '2026-03-30T20:00:00Z', image_url: 'https://placehold.co/800x400/0B1F3A/D4AF37?text=Mega+Launch', category: 'mega', prize_pool: 10000000, requirements: '{}' },
+      { id: uuidv4(), title: '🎰 Weekly Jackpot', description: 'Weekly mega jackpot raffle with ₦5,000,000 prize pool!', ticket_price: 500, total_tickets: 1000, sold_tickets: 342, status: 'active', end_date: '2026-04-02T20:00:00Z', image_url: 'https://placehold.co/800x400/0B1F3A/D4AF37?text=Weekly+Jackpot', category: 'jackpot', prize_pool: 5000000, requirements: '{}' },
+      { id: uuidv4(), title: '💎 Daily Draw', description: 'Daily instant win - ₦50,000 guaranteed prize!', ticket_price: 100, total_tickets: 500, sold_tickets: 89, status: 'active', end_date: '2026-03-27T20:00:00Z', image_url: 'https://placehold.co/800x400/0B1F3A/D4AF37?text=Daily+Draw', category: 'daily', prize_pool: 50000, requirements: '{}' },
+      { id: uuidv4(), title: '🚀 Mega Launch', description: 'Grand opening special - ₦10,000,000 mega prize!', ticket_price: 1000, total_tickets: 2000, sold_tickets: 1204, status: 'active', end_date: '2026-03-30T20:00:00Z', image_url: 'https://placehold.co/800x400/0B1F3A/D4AF37?text=Mega+Launch', category: 'mega', prize_pool: 10000000, requirements: '{}' },
     ];
     for (const c of demoCampaigns) {
       await supabaseInsert('wb_campaigns', c);
