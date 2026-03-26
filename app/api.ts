@@ -166,16 +166,22 @@ export async function deleteNotification(userId: string, notificationId: string)
 }
 
 export async function getWallet(userId: string) {
-  return {
-    id: 'wallet-1',
-    userId,
-    balance: 24500,
-    bonusBalance: 2500,
-    totalWon: 157500,
-    totalWithdrawn: 45000,
-    totalSpent: 88000,
-    createdAt: '2025-11-01T00:00:00Z',
-  };
+  const token = await getToken();
+  if (!token) return { balance: 0, bonusBalance: 0, totalWon: 0, totalWithdrawn: 0, totalSpent: 0 };
+  try {
+    const res = await fetch(`${API_BASE}/api/wallet`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) return { balance: 0, bonusBalance: 0, totalWon: 0, totalWithdrawn: 0, totalSpent: 0 };
+    return await res.json();
+  } catch {
+    return { balance: 0, bonusBalance: 0, totalWon: 0, totalWithdrawn: 0, totalSpent: 0 };
+  }
 }
 
 export async function getTransactions(userId: string) {
@@ -266,7 +272,7 @@ export async function getDashboardStats(userId: string) {
 
 // ============ ADMIN ============
 export async function getAdminDashboard() {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return getMockAdminDashboard();
   try {
     const res = await fetch(`${API_BASE}/admin/dashboard`, {
@@ -279,7 +285,7 @@ export async function getAdminDashboard() {
 }
 
 export async function getAdminUsers() {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return [];
   try {
     const res = await fetch(`${API_BASE}/admin/users`, {
@@ -301,7 +307,7 @@ export async function createCampaign(data: {
   image_url?: string;
   status?: string;
 }) {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return { error: 'Unauthorized' };
   const res = await fetch(`${API_BASE}/admin/campaigns`, {
     method: 'POST',
@@ -315,7 +321,7 @@ export async function createCampaign(data: {
 }
 
 export async function triggerDraw(campaignId: string) {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return { error: 'Unauthorized' };
   const res = await fetch(`${API_BASE}/admin/draws/trigger`, {
     method: 'POST',
@@ -329,7 +335,7 @@ export async function triggerDraw(campaignId: string) {
 }
 
 export async function purchaseTickets(campaignId: string, quantity: number) {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return { error: 'Unauthorized. Please login.' };
   try {
     const res = await fetch(`${API_BASE}/tickets/purchase`, {
@@ -347,7 +353,7 @@ export async function purchaseTickets(campaignId: string, quantity: number) {
 }
 
 export async function initializePaystackPayment(amount: number, email: string, type: 'deposit' | 'ticket' = 'deposit') {
-  const token = getToken();
+  const token = await getToken();
   if (!token) return { error: 'Unauthorized' };
   try {
     const res = await fetch(`${API_BASE}/payments/paystack/initialize`, {
