@@ -22,12 +22,14 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((r) => setTimeout(r, 800));
-      // Mock successful login — in production this calls your auth API
-      const mockUser: User = { id: '1', name: email.split('@')[0], email, role: 'user' };
-      const mockToken = 'mock_jwt_token_' + Date.now();
-      login(mockToken, mockUser);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Login failed.'); return; }
+      login(data.token, data.user);
       router.push('/dashboard');
     } catch { setError('Login failed. Please try again.'); }
     finally { setLoading(false); }

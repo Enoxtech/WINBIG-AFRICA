@@ -27,7 +27,7 @@ interface Campaign {
 export default function CampaignDetailPage() {
   const { id } = useParams();
   const { user, token } = useAuth();
-  const { balance, deduct } = useWallet();
+  const { balance, deduct, credit } = useWallet();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -56,18 +56,20 @@ export default function CampaignDetailPage() {
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 5000);
+    // Poll every 30s for live updates — not every 5s (too aggressive, kills backend)
+    const interval = setInterval(load, 30000);
     return () => clearInterval(interval);
   }, [load]);
 
   useEffect(() => {
     if (campaign?.status === 'active') {
+      // Poll sold tickets every 15s — gentle, not aggressive
       const interval = setInterval(async () => {
         try {
           const data = await getCampaign(id as string);
           setSold(data.sold_tickets || 0);
         } catch {}
-      }, 3000);
+      }, 15000);
       return () => clearInterval(interval);
     }
   }, [campaign, id]);
@@ -467,28 +469,55 @@ export default function CampaignDetailPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowLuckyModal(false);
-                    // Proceed with actual purchase
                     setBuying(true);
-                    setTimeout(() => {
-                      setSuccess(true);
-                      setShowConfetti(true);
-                      if (typeof window !== 'undefined') {
-                        import('canvas-confetti').then((confettiModule) => {
-                          const confetti = confettiModule.default;
-                          const gold = '#D4AF37';
-                          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: [gold, '#FFD700', '#FFA500', '#FFFFFF'] });
-                          setTimeout(() => {
-                            confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 }, colors: [gold, '#FFD700', '#FFA500'] });
-                            confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 }, colors: [gold, '#FFD700', '#FFA500'] });
-                          }, 200);
-                        });
+                    setError('');
+                    setWalletError('');
+                    try {
+                      // Check wallet balance before purchase
+                      if (balance < totalCost) {
+                        setWalletError(`Insufficient wallet balance. You need ₦${totalCost.toLocaleString()} but have ₦${balance.toLocaleString()}.`);
+                        setBuying(false);
+                        return;
                       }
-                      setTimeout(() => { setSuccess(false); setShowConfetti(false); setLuckyNumbers([]); }, 5000);
+                      // Deduct from wallet
+                      const deducted = await deduct(totalCost, `Ticket purchase — ${campaign?.title}`);
+                      if (!deducted) {
+                        setWalletError('Failed to deduct from wallet. Please try again.');
+                        setBuying(false);
+                        return;
+                      }
+                      // Call real purchase API
+                      const data = await purchaseTickets(id as string, quantity);
+                      if (data.error) {
+                        setError(data.error);
+                        // Refund wallet on error using credit()
+                        credit(totalCost, `Refund — ${campaign?.title}`, 'win');
+                      } else {
+                        setSuccess(true);
+                        setShowConfetti(true);
+                        if (typeof window !== 'undefined') {
+                          import('canvas-confetti').then((confettiModule) => {
+                            const confetti = confettiModule.default;
+                            const gold = '#D4AF37';
+                            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: [gold, '#FFD700', '#FFA500', '#FFFFFF'] });
+                            setTimeout(() => {
+                              confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 }, colors: [gold, '#FFD700', '#FFA500'] });
+                              confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 }, colors: [gold, '#FFD700', '#FFA500'] });
+                            }, 200);
+                          });
+                        }
+                        setTimeout(() => { setSuccess(false); setShowConfetti(false); setLuckyNumbers([]); }, 5000);
+                        load();
+                      }
+                    } catch {
+                      setError('Purchase failed. Please try again.');
+                      // Refund wallet on error using credit()
+                      credit(totalCost, `Refund — ${campaign?.title}`, 'win');
+                    } finally {
                       setBuying(false);
-                      load();
-                    }, 1000);
+                    }
                   }}
                   className="flex-1 py-3 rounded-xl bg-gold text-deep-blue font-bold hover:bg-yellow-400 transition-colors text-sm"
                 >

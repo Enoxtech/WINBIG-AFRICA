@@ -34,8 +34,8 @@ const TRANSACTIONS_KEY = 'winbig_transactions';
 
 function getUserKey(): string {
   if (typeof window === 'undefined') return 'anonymous';
-  const token = localStorage.getItem('token');
-  const user = localStorage.getItem('user');
+  const token = localStorage.getItem('wb_token');
+  const user = localStorage.getItem('wb_user');
   if (user) {
     try {
       const parsed = JSON.parse(user);
@@ -83,9 +83,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const refreshBalance = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('wb_token');
       if (!token) throw new Error('Not authenticated');
-      const res = await fetch('/api/wallet', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -140,12 +140,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     bankName: string
   ): Promise<{ success: boolean; message: string }> => {
     try {
-      const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
+      const token = localStorage.getItem('wb_token');
+      const user = localStorage.getItem('wb_user');
       let email = '';
       try { email = JSON.parse(user || '{}').email || ''; } catch { /* ignore */ }
 
-      const res = await fetch('/api/wallet/withdraw', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wallet/withdraw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
