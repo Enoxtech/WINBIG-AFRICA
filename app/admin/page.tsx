@@ -111,7 +111,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<'overview' | 'campaigns' | 'users' | 'create' | 'winners' | 'settings'>('overview');
 
-  // Redirect non-admins and unauthenticated users
+  // Redirect non-admins and unauthenticated users to admin login
   useEffect(() => {
     if (!isLoading && (!user || user.role !== 'admin')) {
       router.push('/admin/login');
@@ -149,9 +149,9 @@ export default function AdminPage() {
   // Edit campaign
   const [editForm, setEditForm] = useState<Partial<Campaign>>({});
 
+  // Load data when authenticated as admin
   useEffect(() => {
     if (!user || user.role !== 'admin') {
-      router.push('/dashboard');
       return;
     }
     loadData();
