@@ -337,6 +337,18 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// Admin upgrade endpoint (temporary - for setup only)
+app.post('/api/admin/upgrade', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const result = await supabaseUpdate('wb_users', { role: 'admin' }, `email=eq.${encodeURIComponent(email)}`);
+    res.json({ success: true, result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
