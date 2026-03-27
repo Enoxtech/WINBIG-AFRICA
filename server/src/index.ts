@@ -702,7 +702,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
 
 app.post('/api/admin/campaigns', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { title, description, image_url, ticket_price, total_tickets, end_date } = req.body;
+    const { title, description, image_url, ticket_price, total_tickets, end_date, prize_amount, category } = req.body;
     if (!title || !ticket_price || !total_tickets) {
       return res.status(400).json({ error: 'Required fields missing' });
     }
@@ -717,6 +717,8 @@ app.post('/api/admin/campaigns', authMiddleware, adminMiddleware, async (req, re
       end_date: end_date || null,
       status: 'active',
       winner_id: null,
+      prize_amount: prize_amount || 0,
+      category: category || 'general',
       created_at: new Date().toISOString()
     });
     res.json(campaign);
@@ -727,7 +729,7 @@ app.post('/api/admin/campaigns', authMiddleware, adminMiddleware, async (req, re
 
 app.put('/api/admin/campaigns/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { title, description, image_url, ticket_price, total_tickets, end_date, status } = req.body;
+    const { title, description, image_url, ticket_price, total_tickets, end_date, status, prize_amount, category } = req.body;
     const updates: any = {};
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
@@ -736,6 +738,8 @@ app.put('/api/admin/campaigns/:id', authMiddleware, adminMiddleware, async (req,
     if (total_tickets !== undefined) updates.total_tickets = total_tickets;
     if (end_date !== undefined) updates.end_date = end_date;
     if (status !== undefined) updates.status = status;
+    if (prize_amount !== undefined) updates.prize_amount = prize_amount;
+    if (category !== undefined) updates.category = category;
 
     await supabaseUpdate('wb_campaigns', updates, `id=eq.${req.params.id}`);
     const campaigns = await supabaseFetch('wb_campaigns', `id=eq.${req.params.id}`);
@@ -993,7 +997,11 @@ app.get('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res)
 
 app.put('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { site_name, contact_email, min_withdrawal, referral_bonus, platform_fee, maintenance_mode } = req.body;
+    const {
+      site_name, contact_email, min_withdrawal, referral_bonus, platform_fee, maintenance_mode,
+      weekly_draw_day, weekly_draw_time, urgency_banner_active, urgency_banner_end_date,
+      registrations_open, min_ticket_price, max_ticket_per_user
+    } = req.body;
     const updates: any = {};
     if (site_name !== undefined) updates.site_name = site_name;
     if (contact_email !== undefined) updates.contact_email = contact_email;
@@ -1001,6 +1009,13 @@ app.put('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res)
     if (referral_bonus !== undefined) updates.referral_bonus = referral_bonus;
     if (platform_fee !== undefined) updates.platform_fee = platform_fee;
     if (maintenance_mode !== undefined) updates.maintenance_mode = maintenance_mode;
+    if (weekly_draw_day !== undefined) updates.weekly_draw_day = weekly_draw_day;
+    if (weekly_draw_time !== undefined) updates.weekly_draw_time = weekly_draw_time;
+    if (urgency_banner_active !== undefined) updates.urgency_banner_active = urgency_banner_active;
+    if (urgency_banner_end_date !== undefined) updates.urgency_banner_end_date = urgency_banner_end_date;
+    if (registrations_open !== undefined) updates.registrations_open = registrations_open;
+    if (min_ticket_price !== undefined) updates.min_ticket_price = min_ticket_price;
+    if (max_ticket_per_user !== undefined) updates.max_ticket_per_user = max_ticket_per_user;
 
     const existing = await supabaseFetch('wb_settings', 'limit=1');
     if (existing && existing.length > 0) {

@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+﻿const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface ApiResponse<T> {
   data?: T;
@@ -311,21 +311,37 @@ export async function createCampaign(data: {
   description: string;
   prize_amount: number;
   ticket_price: number;
-  max_tickets: number;
+  total_tickets: number;
   end_date: string;
   image_url?: string;
   status?: string;
+  category?: string;
 }) {
   const token = await getToken();
   if (!token) return { error: 'Unauthorized' };
+  const payload = {
+    title: data.title,
+    description: data.description,
+    image_url: data.image_url || '',
+    ticket_price: data.ticket_price,
+    total_tickets: data.total_tickets,
+    end_date: data.end_date,
+    prize_amount: data.prize_amount,
+    status: 'active',
+    category: data.category || 'general',
+  };
   const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || 'Failed to create campaign');
+  }
   return res.json();
 }
 
