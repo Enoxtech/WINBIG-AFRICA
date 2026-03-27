@@ -403,6 +403,13 @@ export async function getAdminSettings() {
       referralBonus: 500,
       platformFee: 5,
       maintenanceMode: false,
+      weeklyDrawDay: 'Friday',
+      weeklyDrawTime: '21:00',
+      urgencyBannerActive: true,
+      urgencyBannerEndDate: '',
+      registrationsOpen: true,
+      minTicketPrice: 50,
+      maxTicketPerUser: 50,
     };
   }
   const data = await res.json();
@@ -413,6 +420,13 @@ export async function getAdminSettings() {
     referralBonus: data.referral_bonus ?? 500,
     platformFee: data.platform_fee ?? 5,
     maintenanceMode: data.maintenance_mode ?? false,
+    weeklyDrawDay: data.weekly_draw_day ?? 'Friday',
+    weeklyDrawTime: data.weekly_draw_time ?? '21:00',
+    urgencyBannerActive: data.urgency_banner_active ?? true,
+    urgencyBannerEndDate: data.urgency_banner_end_date ?? '',
+    registrationsOpen: data.registrations_open ?? true,
+    minTicketPrice: data.min_ticket_price ?? 50,
+    maxTicketPerUser: data.max_ticket_per_user ?? 50,
   };
 }
 
@@ -423,6 +437,13 @@ export async function updateAdminSettings(settings: {
   referralBonus?: number;
   platformFee?: number;
   maintenanceMode?: boolean;
+  weeklyDrawDay?: string;
+  weeklyDrawTime?: string;
+  urgencyBannerActive?: boolean;
+  urgencyBannerEndDate?: string;
+  registrationsOpen?: boolean;
+  minTicketPrice?: number;
+  maxTicketPerUser?: number;
 }) {
   const payload = {
     site_name: settings.siteName,
@@ -431,6 +452,13 @@ export async function updateAdminSettings(settings: {
     referral_bonus: settings.referralBonus,
     platform_fee: settings.platformFee,
     maintenance_mode: settings.maintenanceMode,
+    weekly_draw_day: settings.weeklyDrawDay,
+    weekly_draw_time: settings.weeklyDrawTime,
+    urgency_banner_active: settings.urgencyBannerActive,
+    urgency_banner_end_date: settings.urgencyBannerEndDate,
+    registrations_open: settings.registrationsOpen,
+    min_ticket_price: settings.minTicketPrice,
+    max_ticket_per_user: settings.maxTicketPerUser,
   };
   const res = await fetch(`${API_BASE}/api/admin/settings`, {
     method: 'PUT',

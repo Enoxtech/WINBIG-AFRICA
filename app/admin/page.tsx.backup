@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
@@ -72,46 +72,46 @@ interface Winner {
   amount: number;
 }
 
-// ─── Mock system state (replaces missing backend endpoints) ───
+// --- Mock system state (replaces missing backend endpoints) ---
 const MOCK_ACTIVITY: ActivityEvent[] = [
-  { id: '1', type: 'ticket_purchase', message: 'Chidinma from Lagos purchased 5 tickets for ₦500,000 Weekly Draw', time: '2 mins ago', amount: 500 },
+  { id: '1', type: 'ticket_purchase', message: 'Chidinma from Lagos purchased 5 tickets for ?500,000 Weekly Draw', time: '2 mins ago', amount: 500 },
   { id: '2', type: 'user_register', message: 'New user: Emeka from Port Harcourt registered', time: '8 mins ago' },
-  { id: '3', type: 'ticket_purchase', message: 'Ayomide from Abuja purchased 10 tickets for ₦5M Mega Jackpot', time: '14 mins ago', amount: 5000 },
-  { id: '4', type: 'draw_complete', message: 'Toyota Camry 2025 draw completed — Winner: Blessing O.', time: '1 hour ago' },
+  { id: '3', type: 'ticket_purchase', message: 'Ayomide from Abuja purchased 10 tickets for ?5M Mega Jackpot', time: '14 mins ago', amount: 5000 },
+  { id: '4', type: 'draw_complete', message: 'Toyota Camry 2025 draw completed � Winner: Blessing O.', time: '1 hour ago' },
   { id: '5', type: 'ticket_purchase', message: 'Segun from Ibadan purchased 2 tickets for iPhone 16 Pro Max', time: '2 hours ago', amount: 500 },
-  { id: '6', type: 'withdrawal', message: 'User Chidi O. requested ₦50,000 withdrawal', time: '3 hours ago', amount: 50000 },
+  { id: '6', type: 'withdrawal', message: 'User Chidi O. requested ?50,000 withdrawal', time: '3 hours ago', amount: 50000 },
 ];
 const MOCK_NOTIFICATIONS: Notification[] = [
-  { id: '1', type: 'warning', title: 'Campaign Ending Soon', message: '₦500,000 Weekly Draw ends in 3 days — 1,153 tickets unsold', time: '2h ago', read: false },
+  { id: '1', type: 'warning', title: 'Campaign Ending Soon', message: '?500,000 Weekly Draw ends in 3 days � 1,153 tickets unsold', time: '2h ago', read: false },
   { id: '2', type: 'info', title: 'New Registration', message: '47 new users registered today', time: '4h ago', read: false },
   { id: '3', type: 'success', title: 'Draw Completed', message: 'Toyota Camry 2025 winner selected successfully', time: '1d ago', read: true },
-  { id: '4', type: 'error', title: 'Failed Withdrawal', message: 'Chidi O. withdrawal failed — insufficient balance', time: '2d ago', read: true },
+  { id: '4', type: 'error', title: 'Failed Withdrawal', message: 'Chidi O. withdrawal failed � insufficient balance', time: '2d ago', read: true },
 ];
 const MOCK_WINNERS: Winner[] = [
   { id: '1', name: 'Blessing O.', prize: 'Toyota Camry 2025', campaignTitle: 'Weekly Draw', date: '2026-03-21', amount: 15000000 },
-  { id: '2', name: 'Chidi Okafor', prize: '₦1,000,000 Cash', campaignTitle: 'Mega Jackpot', date: '2026-03-14', amount: 1000000 },
+  { id: '2', name: 'Chidi Okafor', prize: '?1,000,000 Cash', campaignTitle: 'Mega Jackpot', date: '2026-03-14', amount: 1000000 },
   { id: '3', name: 'Ngozi M.', prize: 'MacBook Air M3', campaignTitle: 'Tech Giveaway', date: '2026-03-07', amount: 1500000 },
   { id: '4', name: 'Emeka A.', prize: 'iPhone 16 Pro Max', campaignTitle: 'Gadget Bonanza', date: '2026-02-28', amount: 1200000 },
 ];
 
 const ACTIVITY_ICONS: Record<string, string> = {
-  ticket_purchase: '🎟️',
-  user_register: '👤',
-  draw_complete: '🏆',
-  campaign_created: '📋',
-  withdrawal: '💸',
+  ticket_purchase: '???',
+  user_register: '??',
+  draw_complete: '??',
+  campaign_created: '??',
+  withdrawal: '??',
 };
 const NOTIF_ICONS: Record<string, string> = {
-  info: 'ℹ️',
-  warning: '⚠️',
-  success: '✅',
-  error: '❌',
+  info: '??',
+  warning: '??',
+  success: '?',
+  error: '?',
 };
 
 export default function AdminPage() {
   const { user, token, logout, isLoading } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<'overview' | 'campaigns' | 'users' | 'create' | 'winners' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'campaigns' | 'users' | 'create' | 'winners' | 'settings' | 'payments'>('overview');
 
   // Redirect non-admins and unauthenticated users to admin login
   useEffect(() => {
@@ -206,13 +206,14 @@ export default function AdminPage() {
         getAdminUsers(),
       ]);
       setStats({
-        totalUsers: Array.isArray(u) ? u.length : (s?.totalUsers ?? 0),
-        totalCampaigns: Array.isArray(c) ? c.length : (s?.totalCampaigns ?? 0),
+        ...(s || {}),
+        totalUsers: s?.total_users ?? 0,
+        totalCampaigns: s?.total_campaigns ?? 0,
         activeCampaigns: Array.isArray(c) ? c.filter((x: any) => x.status === 'active').length : 0,
-        totalTickets: s?.totalTickets ?? 0,
-        totalRevenue: s?.totalRevenue ?? 0,
+        totalTickets: s?.total_tickets ?? 0,
+        totalRevenue: s?.total_revenue ?? 0,
         totalWinners: Array.isArray(c) ? c.filter((x: any) => x.status === 'completed' && x.winner_id).length : 0,
-        conversionRate: s?.conversionRate ?? 0,
+        conversionRate: s?.conversion_rate ?? 0,
       } as DashboardStats);
       setCampaigns(Array.isArray(c) ? c : []);
       setUsers(Array.isArray(u) ? u : []);
@@ -285,12 +286,12 @@ export default function AdminPage() {
         prize_amount: parseFloat(form.prize_amount) || parseFloat(form.ticket_price) * parseInt(form.total_tickets),
         category: form.category,
       });
-      setMsg('✅ Campaign created successfully!');
+      setMsg('? Campaign created successfully!');
       setForm({ title: '', description: '', image_url: '', ticket_price: '', total_tickets: '', end_date: '', prize_amount: '', category: 'general' });
       await loadData();
       setTab('campaigns');
     } catch {
-      setMsg('❌ Failed to create campaign.');
+      setMsg('? Failed to create campaign.');
     } finally {
       setCreating(false);
       setTimeout(() => setMsg(''), 4000);
@@ -304,10 +305,10 @@ export default function AdminPage() {
     try {
       const result = await triggerDraw(campaignId);
       const winnerName = result?.winner?.name || 'Unknown';
-      setMsg(`🏆 Draw completed! Winner: ${winnerName}`);
+      setMsg(`?? Draw completed! Winner: ${winnerName}`);
       loadData();
     } catch {
-      setMsg('❌ Draw failed. Ensure tickets are sold.');
+      setMsg('? Draw failed. Ensure tickets are sold.');
     } finally {
       setDrawLoading(null);
       setTimeout(() => setMsg(''), 6000);
@@ -317,7 +318,7 @@ export default function AdminPage() {
   const handleEditSave = () => {
     if (!selectedCampaign) return;
     setCampaigns(prev => prev.map(c => c.id === selectedCampaign.id ? { ...c, ...editForm } : c));
-    setMsg('✅ Campaign updated!');
+    setMsg('? Campaign updated!');
     setSelectedCampaign(null);
     setTimeout(() => setMsg(''), 3000);
   };
@@ -346,13 +347,13 @@ export default function AdminPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        {/* ── Header ── */}
+        {/* -- Header -- */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-deep-blue">Admin Command Center</h1>
             <p className="text-gray-400 text-sm mt-0.5">
               {new Date().toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              {' • '}
+              {' � '}
               <span className="text-green-600 font-medium">System Online</span>
             </p>
           </div>
@@ -363,7 +364,7 @@ export default function AdminPage() {
                 onClick={() => { setShowNotifPanel(!showNotifPanel); handleMarkAllRead(); }}
                 className="relative bg-white border border-gray-200 rounded-xl px-3.5 py-2.5 hover:bg-gray-50 transition-colors shadow-sm"
               >
-                <span className="text-lg">🔔</span>
+                <span className="text-lg">??</span>
                 {unreadCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                     {unreadCount}
@@ -407,12 +408,12 @@ export default function AdminPage() {
               </AnimatePresence>
             </div>
             <Link href="/dashboard" className="bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium shadow-sm">
-              ← Public View
+              ? Public View
             </Link>
           </div>
         </motion.div>
 
-        {/* ── Message ── */}
+        {/* -- Message -- */}
         <AnimatePresence>
           {msg && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 mb-6 text-sm font-medium">
@@ -421,15 +422,16 @@ export default function AdminPage() {
           )}
         </AnimatePresence>
 
-        {/* ── Tab Navigation ── */}
+        {/* -- Tab Navigation -- */}
         <div className="flex gap-1.5 mb-8 overflow-x-auto pb-1">
           {[
-            { key: 'overview', label: '📊 Overview' },
-            { key: 'campaigns', label: '🎯 Campaigns' },
-            { key: 'winners', label: '🏆 Winners' },
-            { key: 'users', label: '👥 Users' },
+            { key: 'overview', label: '?? Overview' },
+            { key: 'campaigns', label: '?? Campaigns' },
+            { key: 'winners', label: '?? Winners' },
+            { key: 'users', label: '?? Users' },
             { key: 'create', label: '+ New Campaign' },
-            { key: 'settings', label: '⚙️ Settings' },
+            { key: 'settings', label: '?? Settings' },
+            { key: 'payments', label: '?? Payments' },
           ].map(t => (
             <button
               key={t.key}
@@ -451,17 +453,17 @@ export default function AdminPage() {
           </div>
         ) : (
           <>
-            {/* ═══════════════════════════════════════ OVERVIEW ═══════════════════════════════════════ */}
+            {/* --------------------------------------- OVERVIEW --------------------------------------- */}
             {tab === 'overview' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
 
                 {/* Stat Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {[
-                    { label: 'Total Users', value: stats.totalUsers || 0, icon: '👥', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', sub: `+${Math.round((stats.totalUsers || 0) * 0.15)} today`, positive: true },
-                    { label: 'Active Campaigns', value: stats.activeCampaigns || 0, icon: '🎯', color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', sub: `${stats.totalCampaigns || 0} total`, positive: true },
-                    { label: 'Tickets Sold', value: (stats.totalTickets || 0).toLocaleString(), icon: '🎟️', color: 'from-orange-500 to-orange-600', bg: 'bg-orange-50', sub: `₦${(stats.totalRevenue || 0).toLocaleString()} revenue`, positive: true },
-                    { label: 'Total Winners', value: stats.totalWinners || 0, icon: '🏆', color: 'from-gold/80 to-yellow-500', bg: 'bg-yellow-50', sub: `${((stats.totalWinners || 0) / Math.max(stats.totalUsers || 1, 1) * 100).toFixed(1)}% win rate`, positive: true },
+                    { label: 'Total Users', value: stats.totalUsers || 0, icon: '??', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', sub: `+${Math.round((stats.totalUsers || 0) * 0.15)} today`, positive: true },
+                    { label: 'Active Campaigns', value: stats.activeCampaigns || 0, icon: '??', color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', sub: `${stats.totalCampaigns || 0} total`, positive: true },
+                    { label: 'Tickets Sold', value: (stats.totalTickets || 0).toLocaleString(), icon: '???', color: 'from-orange-500 to-orange-600', bg: 'bg-orange-50', sub: `?${(stats.totalRevenue || 0).toLocaleString()} revenue`, positive: true },
+                    { label: 'Total Winners', value: stats.totalWinners || 0, icon: '??', color: 'from-gold/80 to-yellow-500', bg: 'bg-yellow-50', sub: `${((stats.totalWinners || 0) / Math.max(stats.totalUsers || 1, 1) * 100).toFixed(1)}% win rate`, positive: true },
                   ].map(s => (
                     <div key={s.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                       <div className={`${s.bg} p-4 pb-3`}>
@@ -499,7 +501,7 @@ export default function AdminPage() {
                           </div>
                           {event.amount && (
                             <span className="text-xs font-bold text-deep-blue bg-blue-50 px-2 py-1 rounded-lg flex-shrink-0">
-                              ₦{event.amount.toLocaleString()}
+                              ?{event.amount.toLocaleString()}
                             </span>
                           )}
                         </div>
@@ -517,9 +519,9 @@ export default function AdminPage() {
                             setLoading(true);
                             try {
                               await loadData();
-                              setMsg('🔄 Stats refreshed!');
+                              setMsg('?? Stats refreshed!');
                             } catch (error) {
-                              setMsg('❌ Failed to refresh stats');
+                              setMsg('? Failed to refresh stats');
                               console.error('Refresh failed:', error);
                             } finally {
                               setLoading(false);
@@ -529,16 +531,16 @@ export default function AdminPage() {
                           disabled={loading}
                           className={`w-full flex items-center gap-3 px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors text-sm font-medium text-blue-700 ${loading ? 'opacity-50' : ''}`}
                         >
-                          <span>🔄</span> Refresh All Stats
+                          <span>??</span> Refresh All Stats
                         </button>
                         <button onClick={() => { setTab('create'); setMsg('Ready to create new campaign'); setTimeout(() => setMsg(''), 3000); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-green-50 hover:bg-green-100 rounded-xl transition-colors text-sm font-medium text-green-700">
-                          <span>🎯</span> Create Campaign
+                          <span>??</span> Create Campaign
                         </button>
                         <button onClick={() => { setTab('campaigns'); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors text-sm font-medium text-purple-700">
-                          <span>📊</span> Manage Campaigns
+                          <span>??</span> Manage Campaigns
                         </button>
                         <button onClick={() => { setTab('settings'); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-sm font-medium text-gray-600">
-                          <span>⚙️</span> System Settings
+                          <span>??</span> System Settings
                         </button>
                       </div>
                     </div>
@@ -559,7 +561,7 @@ export default function AdminPage() {
                               <p className="text-xs text-gray-400">{item.detail}</p>
                             </div>
                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.ok ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                              {item.ok ? '✓ OK' : '⚠ WARN'}
+                              {item.ok ? '? OK' : '? WARN'}
                             </span>
                           </div>
                         ))}
@@ -592,7 +594,7 @@ export default function AdminPage() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-400">{daysLeft}d left</span>
-                            <span className="text-xs font-bold text-deep-blue">₦{Number(c.ticket_price).toLocaleString()}/ticket</span>
+                            <span className="text-xs font-bold text-deep-blue">?{Number(c.ticket_price).toLocaleString()}/ticket</span>
                           </div>
                         </div>
                       );
@@ -602,7 +604,7 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {/* ═══════════════════════════════════════ CAMPAIGNS ═══════════════════════════════════════ */}
+            {/* --------------------------------------- CAMPAIGNS --------------------------------------- */}
             {tab === 'campaigns' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="space-y-3.5">
@@ -630,11 +632,11 @@ export default function AdminPage() {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                               <div className="bg-slate-50 rounded-xl px-3 py-2">
                                 <p className="text-xs text-gray-400">Prize Value</p>
-                                <p className="text-sm font-bold text-deep-blue">₦{(c.prize_amount || revenue).toLocaleString()}</p>
+                                <p className="text-sm font-bold text-deep-blue">?{(c.prize_amount || revenue).toLocaleString()}</p>
                               </div>
                               <div className="bg-slate-50 rounded-xl px-3 py-2">
                                 <p className="text-xs text-gray-400">Ticket Price</p>
-                                <p className="text-sm font-bold text-deep-blue">₦{Number(c.ticket_price).toLocaleString()}</p>
+                                <p className="text-sm font-bold text-deep-blue">?{Number(c.ticket_price).toLocaleString()}</p>
                               </div>
                               <div className="bg-slate-50 rounded-xl px-3 py-2">
                                 <p className="text-xs text-gray-400">Sold / Total</p>
@@ -642,7 +644,7 @@ export default function AdminPage() {
                               </div>
                               <div className="bg-slate-50 rounded-xl px-3 py-2">
                                 <p className="text-xs text-gray-400">Revenue</p>
-                                <p className="text-sm font-bold text-green-600">₦{revenue.toLocaleString()}</p>
+                                <p className="text-sm font-bold text-green-600">?{revenue.toLocaleString()}</p>
                               </div>
                             </div>
                             <div className="mt-3">
@@ -675,7 +677,7 @@ export default function AdminPage() {
                                 disabled={drawLoading === c.id || c.sold_tickets === 0}
                                 className="text-xs bg-gold hover:bg-yellow-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors disabled:opacity-50"
                               >
-                                {drawLoading === c.id ? 'Drawing...' : '🎲 Draw'}
+                                {drawLoading === c.id ? 'Drawing...' : '?? Draw'}
                               </button>
                             )}
                           </div>
@@ -710,7 +712,7 @@ export default function AdminPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Ticket Price (₦)</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Ticket Price (?)</label>
                               <input value={editForm.ticket_price || ''} onChange={e => setEditForm({ ...editForm, ticket_price: Number(e.target.value) })} className="input-field" type="number" />
                             </div>
                             <div>
@@ -741,7 +743,7 @@ export default function AdminPage() {
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Prize Amount (₦)</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Prize Amount (?)</label>
                               <input
                                 value={editForm.prize_amount || ''}
                                 onChange={e => setEditForm({ ...editForm, prize_amount: Number(e.target.value) })}
@@ -766,7 +768,7 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {/* ═══════════════════════════════════════ WINNERS ═══════════════════════════════════════ */}
+            {/* --------------------------------------- WINNERS --------------------------------------- */}
             {tab === 'winners' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 {(() => {
@@ -786,7 +788,7 @@ export default function AdminPage() {
                                 <p className="text-sm text-gray-500">{c.title}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-lg font-extrabold text-green-600">₦{(c.prize_amount || 0).toLocaleString()}</p>
+                                <p className="text-lg font-extrabold text-green-600">?{(c.prize_amount || 0).toLocaleString()}</p>
                                 <p className="text-xs text-gray-400">{c.end_date ? new Date(c.end_date).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</p>
                               </div>
                             </div>
@@ -795,7 +797,7 @@ export default function AdminPage() {
                       })}
                       {completedCampaigns.length === 0 && (
                         <div className="col-span-2 text-center py-20">
-                          <div className="text-6xl mb-4">🏆</div>
+                          <div className="text-6xl mb-4">??</div>
                           <h3 className="text-xl font-semibold text-deep-blue mb-2">No winners yet</h3>
                           <p className="text-gray-500">Winners will appear here after draws are completed.</p>
                         </div>
@@ -806,7 +808,7 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {/* ═══════════════════════════════════════ USERS ═══════════════════════════════════════ */}
+            {/* --------------------------------------- USERS --------------------------------------- */}
             {tab === 'users' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -866,7 +868,7 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {/* ═══════════════════════════════════════ CREATE CAMPAIGN ═══════════════════════════════════════ */}
+            {/* --------------------------------------- CREATE CAMPAIGN --------------------------------------- */}
             {tab === 'create' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 max-w-2xl">
@@ -876,7 +878,7 @@ export default function AdminPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Campaign Title</label>
-                        <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="input-field" placeholder="e.g. ₦5,000,000 Mega Jackpot" required />
+                        <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="input-field" placeholder="e.g. ?5,000,000 Mega Jackpot" required />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
@@ -889,23 +891,23 @@ export default function AdminPage() {
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
                         <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="input-field">
-                          <option value="general">🏷️ General</option>
-                          <option value="cars">🚗 Cars &amp; Vehicles</option>
-                          <option value="tech">📱 Tech &amp; Electronics</option>
-                          <option value="fashion">👗 Fashion &amp; Beauty</option>
-                          <option value="home">🏠 Home &amp; Living</option>
-                          <option value="travel">✈️ Travel &amp; Experience</option>
-                          <option value="sports">⚽ Sports &amp; Fitness</option>
-                          <option value="education">🎓 Education</option>
-                          <option value="food">🛒 Food &amp; Groceries</option>
+                          <option value="general">??? General</option>
+                          <option value="cars">?? Cars &amp; Vehicles</option>
+                          <option value="tech">?? Tech &amp; Electronics</option>
+                          <option value="fashion">?? Fashion &amp; Beauty</option>
+                          <option value="home">?? Home &amp; Living</option>
+                          <option value="travel">?? Travel &amp; Experience</option>
+                          <option value="sports">? Sports &amp; Fitness</option>
+                          <option value="education">?? Education</option>
+                          <option value="food">?? Food &amp; Groceries</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Ticket Price (₦)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Ticket Price (?)</label>
                         <input value={form.ticket_price} onChange={e => setForm({ ...form, ticket_price: e.target.value })} className="input-field" type="number" min="50" step="50" placeholder="500" required />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Prize Amount (₦)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Prize Amount (?)</label>
                         <input value={form.prize_amount} onChange={e => setForm({ ...form, prize_amount: e.target.value })} className="input-field" type="number" placeholder="5000000" />
                       </div>
                       <div>
@@ -918,20 +920,20 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <button type="submit" disabled={creating} className="w-full btn-primary py-3.5 disabled:opacity-60 font-semibold">
-                      {creating ? 'Creating Campaign...' : '🎯 Create Campaign'}
+                      {creating ? 'Creating Campaign...' : '?? Create Campaign'}
                     </button>
                   </form>
                 </div>
               </motion.div>
             )}
 
-            {/* ═══════════════════════════════════════ SETTINGS ═══════════════════════════════════════ */}
+            {/* --------------------------------------- SETTINGS --------------------------------------- */}
             {tab === 'settings' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="max-w-2xl space-y-6">
                   {/* Urgency Banner / Draw Schedule */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">🎯 Draw Schedule</h3>
+                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">?? Draw Schedule</h3>
                     <p className="text-sm text-gray-400 mb-5">Controls the weekly draw timer shown on the homepage.</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -957,7 +959,7 @@ export default function AdminPage() {
 
                   {/* Urgency Banner */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">🚨 Urgency Banner</h3>
+                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">?? Urgency Banner</h3>
                     <p className="text-sm text-gray-400 mb-5">Show the red urgency banner on the homepage.</p>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -987,7 +989,7 @@ export default function AdminPage() {
 
                   {/* Platform Settings */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">⚙️ Platform Settings</h3>
+                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">?? Platform Settings</h3>
                     <p className="text-sm text-gray-400 mb-5">General platform controls.</p>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -1004,7 +1006,7 @@ export default function AdminPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Min Ticket Price (₦)</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Min Ticket Price (?)</label>
                           <input value={settings.minTicketPrice} onChange={e => setSettings({ ...settings, minTicketPrice: Number(e.target.value) })} className="input-field" type="number" min="50" />
                         </div>
                         <div>
@@ -1017,19 +1019,19 @@ export default function AdminPage() {
 
                   {/* Paystack / API */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">💳 Payment & API</h3>
+                    <h3 className="text-lg font-extrabold text-deep-blue mb-1">?? Payment & API</h3>
                     <p className="text-sm text-gray-400 mb-5">Payment provider configuration.</p>
                     <div className="space-y-4">
                       <div className="p-3.5 bg-yellow-50 border border-yellow-200 rounded-xl">
-                        <p className="text-sm text-yellow-800 font-medium">⚠️ Paystack is in Test Mode</p>
+                        <p className="text-sm text-yellow-800 font-medium">?? Paystack is in Test Mode</p>
                         <p className="text-xs text-yellow-700 mt-1">Switch to live keys before launching. Configure in server .env file.</p>
                       </div>
                       <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl">
-                        <p className="text-sm text-blue-800 font-medium">📡 NEXT_PUBLIC_API_URL</p>
+                        <p className="text-sm text-blue-800 font-medium">?? NEXT_PUBLIC_API_URL</p>
                         <p className="text-xs text-blue-700 mt-1">Set this to your production backend URL when deploying.</p>
                       </div>
                       <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p className="text-sm text-slate-700 font-medium">📦 Backend Status</p>
+                        <p className="text-sm text-slate-700 font-medium">?? Backend Status</p>
                         <p className="text-xs text-slate-500 mt-1">Deploy to Railway, Render, or Fly.io. Set SUPABASE_URL and SUPABASE_KEY in server .env.</p>
                       </div>
                     </div>
@@ -1041,24 +1043,17 @@ export default function AdminPage() {
                         // Save to localStorage immediately (instant persistence)
                         localStorage.setItem('wb_admin_settings', JSON.stringify(settings));
                         await updateAdminSettings({
-                          siteName: settings.siteName,
-                          contactEmail: settings.contactEmail,
-                          minWithdrawal: settings.minWithdrawal,
-                          referralBonus: settings.referralBonus,
-                          platformFee: settings.platformFee,
-                          maintenanceMode: settings.maintenanceMode,
-                          weeklyDrawDay: settings.weeklyDrawDay,
-                          weeklyDrawTime: settings.weeklyDrawTime,
-                          urgencyBannerActive: settings.urgencyBannerActive,
-                          urgencyBannerEndDate: settings.urgencyBannerEndDate,
-                          registrationsOpen: settings.registrationsOpen,
-                          minTicketPrice: settings.minTicketPrice,
-                          maxTicketPerUser: settings.maxTicketPerUser,
+                          site_name: settings.siteName,
+                          contact_email: settings.contactEmail,
+                          min_withdrawal: settings.minWithdrawal,
+                          referral_bonus: settings.referralBonus,
+                          platform_fee: settings.platformFee,
+                          maintenance_mode: settings.maintenanceMode,
                         });
-                        setMsg('✅ Settings saved to browser & server!');
+                        setMsg('? Settings saved to browser & server!');
                         setTimeout(() => setMsg(''), 4000);
                       } catch {
-                        setMsg('❌ Failed to save settings');
+                        setMsg('? Failed to save settings');
                         setTimeout(() => setMsg(''), 4000);
                       }
                     }}
@@ -1075,3 +1070,6 @@ export default function AdminPage() {
     </div>
   );
 }
+
+
+
