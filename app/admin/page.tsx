@@ -158,41 +158,43 @@ export default function AdminPage() {
   // Edit campaign
   const [editForm, setEditForm] = useState<Partial<Campaign>>({});
 
+  // Load settings from localStorage + API on mount
+  const loadSettings = useCallback(async () => {
+    if (!user || user.role !== 'admin') return;
+    // Load saved settings from localStorage first (instant UI)
+    try {
+      const saved = localStorage.getItem('wb_admin_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSettings(prev => ({ ...prev, ...parsed }));
+      }
+    } catch {}
+    // Then sync with server
+    try {
+      const serverSettings = await getAdminSettings();
+      if (serverSettings && typeof serverSettings === 'object') {
+        const normalized: any = {};
+        for (const [key, value] of Object.entries(serverSettings)) {
+          normalized[key] = value;
+        }
+        setSettings(prev => {
+          const merged = { ...prev, ...normalized };
+          // Save to localStorage for next time
+          try { localStorage.setItem('wb_admin_settings', JSON.stringify(merged)); } catch {}
+          return merged;
+        });
+      }
+    } catch {}
+  }, [user]);
+
   // Load data when authenticated as admin
   useEffect(() => {
     if (!user || user.role !== 'admin') {
       return;
     }
     loadData();
-    checkApiStatus();
+    loadSettings();
   }, [user, token]);
-
-  // Fetch winners when campaigns or users change
-  useEffect(() => {
-    if (user && user.role === 'admin' && token && fetchWinners) {
-      fetchWinners();
-    }
-  }, [campaigns, users, user, token]);
-
-  // Check API server status
-  const checkApiStatus = useCallback(async () => {
-    try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE}/health`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include' as RequestCredentials,
-        cache: 'no-store'
-      });
-      
-      // Update system status - we'd need to make this reactive, but for now just log
-      if (!response.ok) {
-        console.warn('API health check failed:', response.status);
-      }
-    } catch (error) {
-      console.error('API health check error:', error);
-    }
-  }, []);
 
   const loadData = useCallback(async () => {
     if (!token) return;
@@ -226,6 +228,13 @@ export default function AdminPage() {
       setLoading(false);
     }
   }, [token]);
+
+  // Fetch winners when campaigns or users change
+  useEffect(() => {
+    if (user && user.role === 'admin' && token && fetchWinners) {
+      fetchWinners();
+    }
+  }, [campaigns, users, user, token]);
 
   // Fetch winners from completed campaigns
   const fetchWinners = useCallback(async () => {
@@ -276,7 +285,7 @@ export default function AdminPage() {
       });
       setMsg('✅ Campaign created successfully!');
       setForm({ title: '', description: '', image_url: '', ticket_price: '', total_tickets: '', end_date: '', prize_amount: '', category: 'general' });
-      loadData();
+      await loadData();
       setTab('campaigns');
     } catch {
       setMsg('❌ Failed to create campaign.');
@@ -1027,6 +1036,8 @@ export default function AdminPage() {
                   <button
                     onClick={async () => {
                       try {
+                        // Save to localStorage immediately (instant persistence)
+                        localStorage.setItem('wb_admin_settings', JSON.stringify(settings));
                         await updateAdminSettings({
                           site_name: settings.siteName,
                           contact_email: settings.contactEmail,
@@ -1035,7 +1046,7 @@ export default function AdminPage() {
                           platform_fee: settings.platformFee,
                           maintenance_mode: settings.maintenanceMode,
                         });
-                        setMsg('✅ Settings saved!');
+                        setMsg('✅ Settings saved to browser & server!');
                         setTimeout(() => setMsg(''), 4000);
                       } catch {
                         setMsg('❌ Failed to save settings');
