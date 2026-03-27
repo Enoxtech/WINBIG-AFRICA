@@ -1,9 +1,5 @@
-﻿const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}
+const ADMIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YmFxZ2xwZWFzZWxhbGRpankiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTAwMDAwMDAwLCJleHAiOjIwNjU0NzYwMDB9.5YV5am7y0RlCfqTkR-MN-H7hQTXjyvM-8YcPwGUh0gk';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 async function getToken(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
@@ -23,6 +19,8 @@ async function fetchWithFallback<T>(url: string, fallbackData: T): Promise<T> {
     return fallbackData;
   }
 }
+
+// ============ PUBLIC ============
 
 export async function getCampaigns() {
   return fetchWithFallback('/api/campaigns', {
@@ -46,44 +44,6 @@ export async function getCampaigns() {
         imageUrl: '',
         jackpot: false,
       },
-      {
-        id: 'jackpot',
-        title: '₦50,000,000 Jackpot',
-        description: 'The biggest draw of the year!',
-        prize: '₦50,000,000',
-        prize_amount: 50000000,
-        ticket_price: 5000,
-        draw_date: '2026-03-26T20:00:00Z',
-        end_date: '2026-03-26T20:00:00Z',
-        status: 'jackpot',
-        total_tickets: 2000,
-        max_tickets: 2000,
-        maxTickets: 2000,
-        sold_tickets: 900,
-        ticketsSold: 900,
-        image_url: '',
-        imageUrl: '',
-        jackpot: true,
-      },
-      {
-        id: 'daily-car',
-        title: 'Abuja Car Giveaway',
-        description: 'Win a brand new car!',
-        prize: 'Brand New Car',
-        prize_amount: 15000000,
-        ticket_price: 5000,
-        draw_date: '2026-04-05T20:00:00Z',
-        end_date: '2026-04-05T20:00:00Z',
-        status: 'active',
-        total_tickets: 500,
-        max_tickets: 500,
-        maxTickets: 500,
-        sold_tickets: 200,
-        ticketsSold: 200,
-        image_url: '',
-        imageUrl: '',
-        jackpot: false,
-      },
     ],
   });
 }
@@ -94,20 +54,18 @@ export async function getCampaign(id: string) {
   if (!c) return null;
   return {
     ...c,
-    // Frontend camelCase names
-    ticketPrice: c.ticket_price !== undefined ? c.ticket_price : c.ticketPrice,
-    maxTickets: c.total_tickets !== undefined ? c.total_tickets : c.maxTickets,
-    ticketsSold: c.sold_tickets !== undefined ? c.sold_tickets : c.ticketsSold,
-    endDate: c.end_date !== undefined ? c.end_date : c.endDate,
-    prizeValue: c.prize_value !== undefined ? c.prize_value : c.prizeValue,
-    imageUrl: c.image_url !== undefined ? c.image_url : c.imageUrl,
-    // Backend snake_case aliases (for pages that use these)
-    ticket_price: c.ticketPrice !== undefined ? c.ticketPrice : c.ticket_price,
-    total_tickets: c.maxTickets !== undefined ? c.maxTickets : c.total_tickets,
-    sold_tickets: c.ticketsSold !== undefined ? c.ticketsSold : c.sold_tickets,
-    end_date: c.endDate !== undefined ? c.endDate : c.end_date,
-    prize_value: c.prizeValue !== undefined ? c.prizeValue : c.prize_value,
-    image_url: c.imageUrl !== undefined ? c.imageUrl : c.image_url,
+    ticketPrice: c.ticket_price ?? c.ticketPrice,
+    maxTickets: c.total_tickets ?? c.maxTickets,
+    ticketsSold: c.sold_tickets ?? c.ticketsSold,
+    endDate: c.end_date ?? c.endDate,
+    prizeValue: c.prize_value ?? c.prizeValue,
+    imageUrl: c.image_url ?? c.imageUrl,
+    ticket_price: c.ticketPrice ?? c.ticket_price,
+    total_tickets: c.maxTickets ?? c.total_tickets,
+    sold_tickets: c.ticketsSold ?? c.sold_tickets,
+    end_date: c.endDate ?? c.end_date,
+    prize_value: c.prizeValue ?? c.prize_value,
+    image_url: c.imageUrl ?? c.image_url,
   };
 }
 
@@ -116,9 +74,6 @@ export async function getMyTickets(userId: string) {
     tickets: [
       { id: '1', campaignTitle: 'Weekly Mega Draw', ticketNumber: 'WM-1847', status: 'active', campaignId: 'weekly-mega' },
       { id: '2', campaignTitle: 'Weekly Mega Draw', ticketNumber: 'WM-1848', status: 'active', campaignId: 'weekly-mega' },
-      { id: '3', campaignTitle: 'Weekly Mega Draw', ticketNumber: 'WM-2103', status: 'active', campaignId: 'weekly-mega' },
-      { id: '4', campaignTitle: '₦50,000,000 Jackpot', ticketNumber: 'JK-0529', status: 'active', campaignId: 'jackpot' },
-      { id: '5', campaignTitle: '₦50,000,000 Jackpot', ticketNumber: 'JK-0530', status: 'active', campaignId: 'jackpot' },
     ],
   };
   const token = await getToken();
@@ -126,7 +81,7 @@ export async function getMyTickets(userId: string) {
     const res = await fetch(`${API_BASE}/api/tickets/user/${userId}`, {
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       credentials: 'include',
       cache: 'no-store',
@@ -139,29 +94,28 @@ export async function getMyTickets(userId: string) {
   }
 }
 
-export async function getNotifications(userId: string) {
+export async function getNotifications(_userId: string) {
   return {
     notifications: [
       { id: '1', type: 'win', title: 'You Won! 🎉', message: 'Congratulations! You won ₦75,000 in the Weekly Mega Draw!', time: '2 hours ago', isRead: true },
-      { id: '2', type: 'reminder', title: 'Draw Coming Up!', message: 'The ₦5,000,000 Jackpot draw is in 3 days. Get your tickets now!', time: '5 hours ago', isRead: false },
-      { id: '3', type: 'info', title: 'New Campaign', message: 'A new campaign "Abuja Car Giveaway" just launched with 200 tickets left!', time: '1 day ago', isRead: false },
+      { id: '2', type: 'reminder', title: 'Draw Coming Up!', message: 'The ₦5,000,000 Jackpot draw is in 3 days.', time: '5 hours ago', isRead: false },
     ],
   };
 }
 
-export async function getUnreadNotificationCount(userId: string) {
+export async function getUnreadNotificationCount(_userId: string) {
   return { count: 2 };
 }
 
-export async function markNotificationsRead(userId: string, notificationId: string) {
+export async function markNotificationsRead(_userId: string, _notificationId: string) {
   return { success: true };
 }
 
-export async function markAllNotificationsRead(userId: string) {
+export async function markAllNotificationsRead(_userId: string) {
   return { success: true };
 }
 
-export async function deleteNotification(userId: string, notificationId: string) {
+export async function deleteNotification(_userId: string, _notificationId: string) {
   return { success: true };
 }
 
@@ -170,10 +124,7 @@ export async function getWallet(userId: string) {
   if (!token) return { balance: 0, bonusBalance: 0, totalWon: 0, totalWithdrawn: 0, totalSpent: 0 };
   try {
     const res = await fetch(`${API_BASE}/api/wallet`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       credentials: 'include',
       cache: 'no-store',
     });
@@ -185,22 +136,32 @@ export async function getWallet(userId: string) {
 }
 
 export async function getTransactions(userId: string) {
-  return {
+  const fallback = {
     transactions: [
       { id: '1', type: 'win', description: 'Weekly Mega Draw Winnings', amount: 75000, createdAt: '2026-03-21T14:30:00Z' },
       { id: '2', type: 'deposit', description: 'Deposit via Paystack', amount: 10000, createdAt: '2026-03-20T10:00:00Z' },
-      { id: '3', type: 'withdraw', description: 'Withdrawal to GTBank', amount: -25000, createdAt: '2026-03-18T16:00:00Z' },
-      { id: '4', type: 'ticket', description: 'Weekly Mega Draw Ticket', amount: -2500, createdAt: '2026-03-15T09:00:00Z' },
-      { id: '5', type: 'ticket', description: 'Jackpot Entry Ticket', amount: -5000, createdAt: '2026-03-10T11:00:00Z' },
     ],
   };
+  const token = await getToken();
+  if (!token) return fallback;
+  try {
+    const res = await fetch(`${API_BASE}/api/transactions/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) return fallback;
+    return await res.json();
+  } catch {
+    return fallback;
+  }
 }
 
-export async function requestWithdrawal(userId: string, amount: number, bankName: string, accountNumber: string, accountName: string) {
+export async function requestWithdrawal(_userId: string, _amount: number, _bankName: string, _accountNumber: string, _accountName: string) {
   return { success: true, message: 'Withdrawal request submitted. Processing takes 24-48 hours.' };
 }
 
-export async function requestDeposit(userId: string, amount: number) {
+export async function requestDeposit(userId: string, _amount: number) {
   return { success: true, paymentUrl: `https://paystack.com/pay/winbig-${userId}` };
 }
 
@@ -238,26 +199,7 @@ export async function updateBankDetails(data: { bankName: string; accountNumber:
   return res.json();
 }
 
-export async function getAdminSettings() {
-  const token = await getToken();
-  if (!token) return { site_name: 'WINBIG Africa', contact_email: '', min_withdrawal: 1000, referral_bonus: 500, platform_fee: 5, maintenance_mode: false };
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/settings`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function getReferralStats(userId: string) {
+export async function getReferralStats(_userId: string) {
   return {
     referralCode: 'EMEKA2026',
     totalReferrals: 12,
@@ -268,13 +210,11 @@ export async function getReferralStats(userId: string) {
     paidOut: 8000,
     referrals: [
       { id: '1', name: 'Kunle A.', date: '2026-03-21', status: 'successful', earned: 2000 },
-      { id: '2', name: 'Funke B.', date: '2026-03-16', status: 'successful', earned: 2000 },
-      { id: '3', name: 'Tunde C.', date: '2026-03-09', status: 'pending', earned: 0 },
     ],
   };
 }
 
-export async function getDashboardStats(userId: string) {
+export async function getDashboardStats(_userId: string) {
   return {
     ticketsBought: 142,
     campaignsEntered: 28,
@@ -288,81 +228,19 @@ export async function getDashboardStats(userId: string) {
   };
 }
 
-
-// ============ ADMIN ============
-export async function getAdminDashboard() {
+export async function getProfile(_userId?: string) {
   const token = await getToken();
-  if (!token) throw new Error('Unauthorized');
-  const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`Admin dashboard failed: ${res.status}`);
-  return res.json();
-}
-
-export async function getAdminUsers() {
-  const token = await getToken();
-  if (!token) throw new Error('Unauthorized');
-  const res = await fetch(`${API_BASE}/api/admin/users`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`Failed to load users: ${res.status}`);
-  return res.json();
-}
-
-export async function createCampaign(data: {
-  title: string;
-  description: string;
-  prize_amount: number;
-  ticket_price: number;
-  total_tickets: number;
-  end_date: string;
-  image_url?: string;
-  status?: string;
-  category?: string;
-}) {
-  const token = await getToken();
-  if (!token) return { error: 'Unauthorized' };
-  const payload = {
-    title: data.title,
-    description: data.description,
-    image_url: data.image_url || '',
-    ticket_price: data.ticket_price,
-    total_tickets: data.total_tickets,
-    end_date: data.end_date,
-    prize_amount: data.prize_amount,
-    status: 'active',
-    category: data.category || 'general',
-  };
-  const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || 'Failed to create campaign');
+  if (!token) return getMockUser();
+  try {
+    const res = await fetch(`${API_BASE}/api/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) return getMockUser();
+    return await res.json();
+  } catch {
+    return getMockUser();
   }
-  return res.json();
-}
-
-export async function triggerDraw(campaignId: string) {
-  const token = await getToken();
-  if (!token) return { error: 'Unauthorized' };
-  const res = await fetch(`${API_BASE}/api/admin/draws/${campaignId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({}),
-  });
-  return res.json();
 }
 
 export async function purchaseTickets(campaignId: string, quantity: number) {
@@ -401,61 +279,220 @@ export async function initializePaystackPayment(amount: number, email: string, t
   }
 }
 
-export async function getProfile(_userId?: string) {
-  const token = await getToken();
-  if (!token) return getMockUser();
-  try {
-    const res = await fetch(`${API_BASE}/api/users/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return getMockUser();
-    return res.json();
-  } catch { return getMockUser(); }
+// ============ ADMIN ============
+
+export async function getAdminDashboard() {
+  const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Admin dashboard failed: ${res.status}`);
+  const data = await res.json();
+  return {
+    totalUsers: data.totalUsers ?? data.total_users ?? 0,
+    totalCampaigns: data.totalCampaigns ?? data.total_campaigns ?? 0,
+    activeCampaigns: data.activeCampaigns ?? 0,
+    totalTickets: data.totalTickets ?? data.total_tickets ?? 0,
+    totalRevenue: data.totalRevenue ?? data.total_revenue ?? 0,
+    totalWinners: data.totalWinners ?? 0,
+    conversionRate: data.conversionRate ?? 0,
+  };
+}
+
+export async function getAdminUsers() {
+  const res = await fetch(`${API_BASE}/api/admin/users`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load users: ${res.status}`);
+  return res.json();
 }
 
 export async function getAdminCampaigns() {
-  const token = await getToken();
-  if (!token) return [];
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
+  const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load campaigns: ${res.status}`);
+  return res.json();
 }
 
-export async function updateAdminSettings(data: Record<string, string | number | boolean>) {
-  const token = await getToken();
-  if (!token) return { success: false, error: 'Not authenticated' };
-  // Convert camelCase to snake_case for backend
-  const payload: Record<string, string | number | boolean> = {};
-  for (const [key, value] of Object.entries(data)) {
-    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-    payload[snakeKey] = value;
+export async function createCampaign(data: {
+  title: string;
+  description: string;
+  prize_amount: number;
+  ticket_price: number;
+  total_tickets: number;
+  end_date: string;
+  image_url?: string;
+  status?: string;
+  category?: string;
+}) {
+  const payload = {
+    title: data.title,
+    description: data.description,
+    image_url: data.image_url || '',
+    ticket_price: data.ticket_price,
+    total_tickets: data.total_tickets,
+    end_date: data.end_date,
+    prize_amount: data.prize_amount,
+    status: 'active',
+    category: data.category || 'general',
+  };
+  const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Key': ADMIN_KEY,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || 'Failed to create campaign');
   }
+  return res.json();
+}
+
+export async function updateCampaign(id: string, data: any) {
+  const payload = {
+    title: data.title,
+    description: data.description,
+    image_url: data.image_url || '',
+    ticket_price: data.ticket_price,
+    total_tickets: data.total_tickets,
+    end_date: data.end_date,
+    prize_amount: data.prize_amount,
+    status: data.status,
+    category: data.category,
+  };
+  const res = await fetch(`${API_BASE}/api/admin/campaigns/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Key': ADMIN_KEY,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`Failed to update campaign: ${res.status}`);
+  return res.json();
+}
+
+export async function triggerDraw(campaignId: string) {
+  const res = await fetch(`${API_BASE}/api/admin/draws/${campaignId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Key': ADMIN_KEY,
+    },
+    body: JSON.stringify({}),
+  });
+  return res.json();
+}
+
+export async function getAdminSettings() {
+  const res = await fetch(`${API_BASE}/api/admin/settings`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    return {
+      siteName: 'WINBIG Africa',
+      contactEmail: '',
+      minWithdrawal: 1000,
+      referralBonus: 500,
+      platformFee: 5,
+      maintenanceMode: false,
+    };
+  }
+  const data = await res.json();
+  return {
+    siteName: data.site_name ?? 'WINBIG Africa',
+    contactEmail: data.contact_email ?? '',
+    minWithdrawal: data.min_withdrawal ?? 1000,
+    referralBonus: data.referral_bonus ?? 500,
+    platformFee: data.platform_fee ?? 5,
+    maintenanceMode: data.maintenance_mode ?? false,
+  };
+}
+
+export async function updateAdminSettings(settings: {
+  siteName?: string;
+  contactEmail?: string;
+  minWithdrawal?: number;
+  referralBonus?: number;
+  platformFee?: number;
+  maintenanceMode?: boolean;
+}) {
+  const payload = {
+    site_name: settings.siteName,
+    contact_email: settings.contactEmail,
+    min_withdrawal: settings.minWithdrawal,
+    referral_bonus: settings.referralBonus,
+    platform_fee: settings.platformFee,
+    maintenance_mode: settings.maintenanceMode,
+  };
   const res = await fetch(`${API_BASE}/api/admin/settings`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'X-Admin-Key': ADMIN_KEY,
     },
-    credentials: 'include',
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Failed to update settings');
+  if (!res.ok) throw new Error('Failed to save settings');
+  return res.json();
+}
+
+// ============ ADMIN FINANCIAL / WALLET ============
+
+export async function getAdminWallets() {
+  const res = await fetch(`${API_BASE}/api/admin/wallets`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load wallets: ${res.status}`);
+  return res.json();
+}
+
+export async function getAdminTransactions(params?: { page?: number; limit?: number; type?: string; user_id?: string }) {
+  const qs = new URLSearchParams();
+  if (params?.page) qs.set('page', String(params.page));
+  if (params?.limit) qs.set('limit', String(params.limit));
+  if (params?.type) qs.set('type', params.type);
+  if (params?.user_id) qs.set('user_id', params.user_id);
+  const res = await fetch(`${API_BASE}/api/admin/transactions?${qs}`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load transactions: ${res.status}`);
+  return res.json();
+}
+
+export async function getAdminDeposits(params?: { page?: number; limit?: number; status?: string }) {
+  const qs = new URLSearchParams();
+  if (params?.page) qs.set('page', String(params.page));
+  if (params?.limit) qs.set('limit', String(params.limit));
+  if (params?.status) qs.set('status', params.status);
+  const res = await fetch(`${API_BASE}/api/admin/deposits?${qs}`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load deposits: ${res.status}`);
+  return res.json();
+}
+
+export async function getAdminFinancials() {
+  const res = await fetch(`${API_BASE}/api/admin/financials`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load financials: ${res.status}`);
   return res.json();
 }
 
 // ============ MOCK DATA HELPERS ============
+
 function getMockUser() {
   return {
     id: 'user-001',
@@ -471,17 +508,3 @@ function getMockUser() {
     accountName: 'Emeka Okonkwo',
   };
 }
-
-function getMockAdminDashboard() {
-  return {
-    total_users: 1247,
-    total_campaigns: 18,
-    active_campaigns: 6,
-    total_tickets_sold: 8934,
-    total_revenue: 44700000,
-    total_winnings_paid: 38900000,
-    recent_users: [],
-    recent_tickets: [],
-  };
-}
-

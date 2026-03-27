@@ -281,8 +281,17 @@ async function supabaseUpdate(table: string, data: any, match: string): Promise<
   }
 }
 
+// Fixed admin key for WINBIG Africa - must match api.ts ADMIN_KEY
+const ADMIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YmFxZ2xwZWFzZWxhbGRpankiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTAwMDAwMDAwLCJleHAiOjIwNjU0NzYwMDB9.5YV5am7y0RlCfqTkR-MN-H7hQTXjyvM-8YcPwGUh0gk';
+
 // Auth middleware
 function authMiddleware(req: any, res: any, next: any) {
+  // Support both user JWT auth and server-to-server admin key auth
+  const adminKey = req.headers['x-admin-key'];
+  if (adminKey === ADMIN_KEY || adminKey === SUPABASE_KEY) {
+    req.user = { role: 'admin' };
+    return next();
+  }
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No token' });
   try {
@@ -677,15 +686,32 @@ app.get('/api/tickets/my-tickets', authMiddleware, async (req, res) => {
 app.get('/api/admin/dashboard', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await supabaseFetch('wb_users', 'select=id');
-    const campaigns = await supabaseFetch('wb_campaigns', 'select=id,sold_tickets,ticket_price');
+    const campaigns = await supabaseFetch('wb_campaigns', 'select=id,sold_tickets,ticket_price,status');
     const tickets = await supabaseFetch('wb_tickets', 'select=id');
+    const winners = await supabaseFetch('wb_winners', 'select=id');
 
     const totalUsers = users?.length || 0;
     const totalCampaigns = campaigns?.length || 0;
+    const activeCampaigns = campaigns?.filter((c: any) => c.status === 'active').length || 0;
     const totalTickets = tickets?.length || 0;
     const totalRevenue = campaigns?.reduce((sum: number, c: any) => sum + (c.sold_tickets * c.ticket_price), 0) || 0;
+    const totalWinners = winners?.length || 0;
+    const conversionRate = totalUsers > 0 ? Math.round((totalWinners / totalUsers) * 100 * 10) / 10 : 0;
 
-    res.json({ totalUsers, totalCampaigns, totalTickets, totalRevenue });
+    res.json({
+      totalUsers,
+      totalCampaigns,
+      activeCampaigns,
+      totalTickets,
+      totalRevenue,
+      totalWinners,
+      conversionRate,
+      // Aliases for backwards compatibility
+      total_users: totalUsers,
+      total_campaigns: totalCampaigns,
+      total_tickets: totalTickets,
+      total_revenue: totalRevenue,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -964,6 +990,106 @@ app.post('/api/admin/withdrawals/resume', authMiddleware, adminMiddleware, async
   res.json({ success: true, paused: false });
 });
 
+// ─── Payment / Wallet Management Endpoints ──────────────────────────────────
+
+// Get all wallets (admin view)
+app.get('/api/admin/wallets', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const wallets = await supabaseFetch('wb_wallets', 'select=*&order=balance.desc');
+    res.json({ wallets: wallets || [] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all transactions (admin view)
+app.get('/api/admin/transactions', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { page = '1', limit = '20', type, user_id } = req.query;
+    const wallets = await supabaseFetch('wb_wallets', 'select=*');
+    const allTx: any[] = [];
+
+    for (const wallet of (wallets || [])) {
+      if (wallet.tx_history && Array.isArray(wallet.tx_history)) {
+        for (const tx of wallet.tx_history) {
+          allTx.push({ ...tx, user_id: wallet.user_id, wallet_id: wallet.id });
+        }
+      }
+    }
+
+    if (user_id) {
+      const filtered = allTx.filter(tx => tx.user_id === user_id);
+      return res.json({ transactions: filtered, total: filtered.length, page: 1, totalPages: 1 });
+    }
+
+    allTx.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    let filtered = type && type !== 'all' ? allTx.filter(tx => tx.type === type) : allTx;
+
+    const total = filtered.length;
+    const start = (Number(page) - 1) * Number(limit);
+    res.json({ transactions: filtered.slice(start, start + Number(limit)), total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all deposits
+app.get('/api/admin/deposits', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { page = '1', limit = '20', status } = req.query;
+    const wallets = await supabaseFetch('wb_wallets', 'select=*');
+    const allDeposits: any[] = [];
+
+    for (const wallet of (wallets || [])) {
+      if (wallet.tx_history && Array.isArray(wallet.tx_history)) {
+        for (const tx of wallet.tx_history) {
+          if (tx.type === 'deposit' || tx.type === 'paystack_callback') {
+            allDeposits.push({ ...tx, user_id: wallet.user_id, wallet_id: wallet.id });
+          }
+        }
+      }
+    }
+
+    let results = status ? allDeposits.filter(d => d.status === status) : allDeposits;
+    results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const total = results.length;
+    const start = (Number(page) - 1) * Number(limit);
+    res.json({ deposits: results.slice(start, start + Number(limit)), total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get platform financial summary
+app.get('/api/admin/financials', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const wallets = await supabaseFetch('wb_wallets', 'select=balance,total_spent,total_won,total_withdrawn');
+    const campaigns = await supabaseFetch('wb_campaigns', 'select=sold_tickets,ticket_price,status');
+    const withdrawals = await (mockWithdrawals.length > 0 ? Promise.resolve(mockWithdrawals) : supabaseFetch('wb_withdrawals', 'select=status,amount'));
+
+    const totalPlatformBalance = wallets?.reduce((sum: number, w: any) => sum + Number(w.balance || 0), 0) || 0;
+    const totalTicketSales = campaigns?.reduce((sum: number, c: any) => sum + (c.sold_tickets * c.ticket_price), 0) || 0;
+    const platformFees = Math.round(totalTicketSales * 0.05);
+    const totalPlatformWon = wallets?.reduce((sum: number, w: any) => sum + Number(w.total_won || 0), 0) || 0;
+    const totalWithdrawn = Array.isArray(withdrawals) ? withdrawals.filter((w: any) => w.status === 'paid').reduce((sum: number, w: any) => sum + Number(w.amount || 0), 0) : 0;
+    const pendingWithdrawals = Array.isArray(withdrawals) ? withdrawals.filter((w: any) => ['pending','approved'].includes(w.status)).reduce((sum: number, w: any) => sum + Number(w.amount || 0), 0) : 0;
+
+    res.json({
+      totalPlatformBalance,
+      totalTicketSales,
+      platformFees,
+      totalPlatformWon,
+      totalWithdrawn,
+      pendingWithdrawals,
+      grossRevenue: totalTicketSales,
+      netRevenue: totalTicketSales - platformFees,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/admin/campaigns/:id/participants', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const tickets = await supabaseFetch('wb_tickets', `campaign_id=eq.${req.params.id}&select=id,ticket_number,user_id,created_at`);
@@ -1041,4 +1167,12 @@ app.put('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res)
 
 httpServer.listen(PORT, () => {
   console.log(`WINBIG AFRICA server running on port ${PORT}`);
+});
+
+httpServer.on('error', (err) => {
+  console.error('💥 HTTP SERVER ERROR:', err);
+});
+
+httpServer.on('close', () => {
+  console.log('HTTP server closed');
 });
