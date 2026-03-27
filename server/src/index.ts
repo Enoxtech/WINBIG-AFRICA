@@ -14,8 +14,8 @@ const io = new SocketIOServer(httpServer, {
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const JWT_SECRET = 'winbig-africa-jwt-secret-2026';
-const SUPABASE_URL = 'https://wxkevhhysawbfuobnydo.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4a2V2aGh5c2F3YmZ1b2JueWRvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDAyMzA2OCwiZXhwIjoyMDg5NTk5MDY4fQ.NsP0NIaWzahKc9ud4thUqc4QcqmpH0nh7VmImseaHA4';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dxbaqglpmeaselaldijy.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YmFxZ2xwZWFzZWxhbGRpankiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNzUwMDAwMDAwLCJleHAiOjIwNjU0NzYwMDB9.5YV5am7y0RlCfqTkR-MN-H7hQTXjyvM-8YcPwGUh0gk';
 
 // ─── Mock Data Store (used when Supabase is unavailable) ───
 const mockUsers: any[] = [];
@@ -972,6 +972,46 @@ app.get('/api/admin/campaigns/:id/participants', authMiddleware, adminMiddleware
 // Healthcheck endpoint (used by Railway to verify deployment)
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// ─── Admin Settings ───
+app.get('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const settings = await supabaseFetch('wb_settings', 'limit=1');
+    res.json(settings && settings.length > 0 ? settings[0] : {
+      site_name: 'WINBIG Africa',
+      contact_email: 'support@winbig.africa',
+      min_withdrawal: 1000,
+      referral_bonus: 500,
+      platform_fee: 5,
+      maintenance_mode: false
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { site_name, contact_email, min_withdrawal, referral_bonus, platform_fee, maintenance_mode } = req.body;
+    const updates: any = {};
+    if (site_name !== undefined) updates.site_name = site_name;
+    if (contact_email !== undefined) updates.contact_email = contact_email;
+    if (min_withdrawal !== undefined) updates.min_withdrawal = min_withdrawal;
+    if (referral_bonus !== undefined) updates.referral_bonus = referral_bonus;
+    if (platform_fee !== undefined) updates.platform_fee = platform_fee;
+    if (maintenance_mode !== undefined) updates.maintenance_mode = maintenance_mode;
+
+    const existing = await supabaseFetch('wb_settings', 'limit=1');
+    if (existing && existing.length > 0) {
+      await supabaseUpdate('wb_settings', updates, `id=eq.${existing[0].id}`);
+    } else {
+      await supabaseInsert('wb_settings', { ...updates, id: uuidv4() });
+    }
+    res.json({ success: true, ...updates });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 httpServer.listen(PORT, () => {

@@ -211,7 +211,7 @@ export async function getCurrentUser() {
 export async function updateProfile(data: { name?: string; email?: string; phone?: string }) {
   const token = await getToken();
   if (!token) return { success: false, error: 'Not authenticated' };
-  const res = await fetch(`${API_BASE}/users/me`, {
+  const res = await fetch(`${API_BASE}/api/users/me`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -226,7 +226,7 @@ export async function updateProfile(data: { name?: string; email?: string; phone
 export async function updateBankDetails(data: { bankName: string; accountNumber: string; accountName: string }) {
   const token = await getToken();
   if (!token) return { success: false, error: 'Not authenticated' };
-  const res = await fetch(`${API_BASE}/users/me/bank`, {
+  const res = await fetch(`${API_BASE}/api/users/me/bank`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -236,6 +236,19 @@ export async function updateBankDetails(data: { bankName: string; accountNumber:
   });
   if (!res.ok) throw new Error('Failed to save bank details');
   return res.json();
+}
+
+export async function getAdminSettings() {
+  const token = await getToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/settings`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
 }
 
 export async function getReferralStats(userId: string) {
@@ -273,28 +286,24 @@ export async function getDashboardStats(userId: string) {
 // ============ ADMIN ============
 export async function getAdminDashboard() {
   const token = await getToken();
-  if (!token) return getMockAdminDashboard();
-  try {
-    const res = await fetch(`${API_BASE}/admin/dashboard`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return getMockAdminDashboard();
-    return res.json();
-  } catch { return getMockAdminDashboard(); }
+  if (!token) throw new Error('Unauthorized');
+  const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Admin dashboard failed: ${res.status}`);
+  return res.json();
 }
 
 export async function getAdminUsers() {
   const token = await getToken();
-  if (!token) return [];
-  try {
-    const res = await fetch(`${API_BASE}/admin/users`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    return res.json();
-  } catch { return []; }
+  if (!token) throw new Error('Unauthorized');
+  const res = await fetch(`${API_BASE}/api/admin/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load users: ${res.status}`);
+  return res.json();
 }
 
 export async function createCampaign(data: {
@@ -309,7 +318,7 @@ export async function createCampaign(data: {
 }) {
   const token = await getToken();
   if (!token) return { error: 'Unauthorized' };
-  const res = await fetch(`${API_BASE}/admin/campaigns`, {
+  const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -323,13 +332,13 @@ export async function createCampaign(data: {
 export async function triggerDraw(campaignId: string) {
   const token = await getToken();
   if (!token) return { error: 'Unauthorized' };
-  const res = await fetch(`${API_BASE}/admin/draws/trigger`, {
+  const res = await fetch(`${API_BASE}/api/admin/draws/${campaignId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ campaignId }),
+    body: JSON.stringify({}),
   });
   return res.json();
 }
@@ -338,7 +347,7 @@ export async function purchaseTickets(campaignId: string, quantity: number) {
   const token = await getToken();
   if (!token) return { error: 'Unauthorized. Please login.' };
   try {
-    const res = await fetch(`${API_BASE}/tickets/purchase`, {
+    const res = await fetch(`${API_BASE}/api/tickets/purchase`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -374,13 +383,28 @@ export async function getProfile(_userId?: string) {
   const token = await getToken();
   if (!token) return getMockUser();
   try {
-    const res = await fetch(`${API_BASE}/users/me`, {
+    const res = await fetch(`${API_BASE}/api/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     });
     if (!res.ok) return getMockUser();
     return res.json();
   } catch { return getMockUser(); }
+}
+
+export async function updateAdminSettings(data: Record<string, string | number | boolean>) {
+  const token = await getToken();
+  if (!token) return { success: false, error: 'Not authenticated' };
+  const res = await fetch(`${API_BASE}/api/admin/settings`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update settings');
+  return res.json();
 }
 
 // ============ MOCK DATA HELPERS ============

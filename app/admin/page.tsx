@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import {
   getAdminDashboard,
@@ -921,7 +920,6 @@ export default function AdminPage() {
           </>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
