@@ -11,6 +11,7 @@ import {
   getCampaigns,
   createCampaign,
   triggerDraw,
+  updateAdminSettings,
 } from '../api';
 
 interface DashboardStats {
@@ -20,6 +21,7 @@ interface DashboardStats {
   totalWinners: number;
   totalTickets: number;
   conversionRate: number;
+  totalCampaigns?: number;
 }
 interface Campaign {
   id: string;
@@ -63,7 +65,7 @@ interface Winner {
   id: string;
   name: string;
   prize: string;
-  campaign: string;
+  campaignTitle: string;
   date: string;
   amount: number;
 }
@@ -84,10 +86,10 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   { id: '4', type: 'error', title: 'Failed Withdrawal', message: 'Chidi O. withdrawal failed — insufficient balance', time: '2d ago', read: true },
 ];
 const MOCK_WINNERS: Winner[] = [
-  { id: '1', name: 'Blessing O.', prize: 'Toyota Camry 2025', campaign: 'camp-002', date: '2026-03-21', amount: 15000000 },
-  { id: '2', name: 'Chidi Okafor', prize: '₦1,000,000 Cash', campaign: 'camp-weekly-003', date: '2026-03-14', amount: 1000000 },
-  { id: '3', name: 'Ngozi M.', prize: 'MacBook Air M3', campaign: 'camp-tech-001', date: '2026-03-07', amount: 1500000 },
-  { id: '4', name: 'Emeka A.', prize: 'iPhone 16 Pro Max', campaign: 'camp-gadget-002', date: '2026-02-28', amount: 1200000 },
+  { id: '1', name: 'Blessing O.', prize: 'Toyota Camry 2025', campaignTitle: 'Weekly Draw', date: '2026-03-21', amount: 15000000 },
+  { id: '2', name: 'Chidi Okafor', prize: '₦1,000,000 Cash', campaignTitle: 'Mega Jackpot', date: '2026-03-14', amount: 1000000 },
+  { id: '3', name: 'Ngozi M.', prize: 'MacBook Air M3', campaignTitle: 'Tech Giveaway', date: '2026-03-07', amount: 1500000 },
+  { id: '4', name: 'Emeka A.', prize: 'iPhone 16 Pro Max', campaignTitle: 'Gadget Bonanza', date: '2026-02-28', amount: 1200000 },
 ];
 
 const ACTIVITY_ICONS: Record<string, string> = {
@@ -129,6 +131,12 @@ export default function AdminPage() {
 
   // Settings state
   const [settings, setSettings] = useState({
+    siteName: 'WINBIG AFRICA',
+    contactEmail: 'support@winbig.africa',
+    minWithdrawal: 5000,
+    referralBonus: 10,
+    platformFee: 5,
+    maintenanceMode: false,
     weeklyDrawDay: 'Friday',
     weeklyDrawTime: '21:00',
     urgencyBannerActive: true,
@@ -159,14 +167,15 @@ export default function AdminPage() {
 
   // Fetch winners when campaigns or users change
   useEffect(() => {
-    if (user && user.role === 'admin' && token) {
+    if (user && user.role === 'admin' && token && fetchWinners) {
       fetchWinners();
     }
-  }, [campaigns, users, user, token, fetchWinners]);
+  }, [campaigns, users, user, token]);
 
   // Check API server status
   const checkApiStatus = useCallback(async () => {
     try {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const response = await fetch(`${API_BASE}/health`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -181,7 +190,7 @@ export default function AdminPage() {
     } catch (error) {
       console.error('API health check error:', error);
     }
-  }, [API_BASE]);
+  }, []);
 
   const loadData = useCallback(async () => {
     if (!token) return;
@@ -229,7 +238,8 @@ export default function AdminPage() {
                 name: user.name || 'Unknown',
                 prize: campaign.prize_amount || 0,
                 campaignTitle: campaign.title || 'Unknown Campaign',
-                date: new Date(campaign.end_date || '').toLocaleDateString()
+                date: new Date(campaign.end_date || '').toLocaleDateString(),
+                amount: campaign.prize_amount || 0,
               });
             }
           });
