@@ -978,6 +978,16 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// ─── Admin Campaigns List ───
+app.get('/api/admin/campaigns', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const campaigns = await supabaseFetch('wb_campaigns', 'select=*&order=created_at.desc');
+    res.json(Array.isArray(campaigns) ? campaigns : []);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Admin Settings ───
 app.get('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res) => {
   try {

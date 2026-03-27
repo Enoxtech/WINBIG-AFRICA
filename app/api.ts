@@ -240,15 +240,21 @@ export async function updateBankDetails(data: { bankName: string; accountNumber:
 
 export async function getAdminSettings() {
   const token = await getToken();
-  if (!token) return null;
+  if (!token) return { site_name: 'WINBIG Africa', contact_email: '', min_withdrawal: 1000, referral_bonus: 500, platform_fee: 5, maintenance_mode: false };
   try {
     const res = await fetch(`${API_BASE}/api/admin/settings`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
       cache: 'no-store',
     });
     if (!res.ok) return null;
-    return res.json();
-  } catch { return null; }
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function getReferralStats(userId: string) {
@@ -408,16 +414,42 @@ export async function getProfile(_userId?: string) {
   } catch { return getMockUser(); }
 }
 
+export async function getAdminCampaigns() {
+  const token = await getToken();
+  if (!token) return [];
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/campaigns`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function updateAdminSettings(data: Record<string, string | number | boolean>) {
   const token = await getToken();
   if (!token) return { success: false, error: 'Not authenticated' };
+  // Convert camelCase to snake_case for backend
+  const payload: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    payload[snakeKey] = value;
+  }
   const res = await fetch(`${API_BASE}/api/admin/settings`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    credentials: 'include',
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Failed to update settings');
   return res.json();

@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import {
   getAdminDashboard,
   getAdminUsers,
+  getAdminCampaigns,
+  getAdminSettings,
   getCampaigns,
   createCampaign,
   triggerDraw,
@@ -198,7 +200,7 @@ export default function AdminPage() {
     try {
       const [s, c, u] = await Promise.all([
         getAdminDashboard(),
-        getCampaigns(),
+        getAdminCampaigns(),
         getAdminUsers(),
       ]);
       setStats({
@@ -210,6 +212,11 @@ export default function AdminPage() {
       } as DashboardStats);
       setCampaigns(Array.isArray(c) ? c : []);
       setUsers(Array.isArray(u) ? u : []);
+
+      // Also fetch settings
+      const settingsData = await getAdminSettings();
+      if (settingsData) setSettings(settingsData);
+
       await fetchWinners();
     } catch (e) {
       console.error(e);
