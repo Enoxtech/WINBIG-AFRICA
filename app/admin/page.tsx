@@ -393,7 +393,7 @@ export default function AdminPage() {
       const params: any = {};
       if (withdrawalFilter !== 'all') params.status = withdrawalFilter;
       const data = await getAdminWithdrawals(params);
-      setWithdrawals(data.withdrawals || data.value || (Array.isArray(data) ? data : []) || []);
+      setWithdrawals(Array.isArray(data) ? data : []);
     } catch { setWithdrawalError('Failed to load withdrawals.'); }
     finally { setWithdrawalLoading(false); }
   };
@@ -404,7 +404,7 @@ export default function AdminPage() {
     setTxError('');
     try {
       const data = await getAdminTransactions();
-      setTransactions(data.transactions || data.value || (Array.isArray(data) ? data : []) || []);
+      setTransactions(Array.isArray(data) ? data : []);
     } catch { setTxError('Failed to load transactions.'); }
     finally { setTxLoading(false); }
   };

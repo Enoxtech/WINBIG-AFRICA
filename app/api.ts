@@ -298,7 +298,9 @@ export async function getAdminDashboard() {
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Admin dashboard failed: ${res.status}`);
-  const data = await res.json();
+  const raw = await res.json();
+  // Railway wraps in { value: {...} }
+  const data = raw?.value ?? raw;
   return {
     totalUsers: data.totalUsers ?? data.total_users ?? 0,
     totalCampaigns: data.totalCampaigns ?? data.total_campaigns ?? 0,
@@ -325,12 +327,17 @@ export async function getAdminCampaigns() {
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Failed to load campaigns: ${res.status}`);
-  const data = await res.json();
+  const raw = await res.json();
   // Railway wraps in { value: [...] }
-  if (data && typeof data === 'object' && 'value' in data && Array.isArray(data.value)) {
-    return data.value;
+  let arr = Array.isArray(raw) ? raw : [];
+  if (raw && typeof raw === 'object' && 'value' in raw && Array.isArray(raw.value)) {
+    arr = raw.value;
   }
-  return Array.isArray(data) ? data : [];
+  // Attach winner_id from winner relation for completed campaigns
+  return arr.map((c: any) => ({
+    ...c,
+    winner_id: c.winner?.user_id ?? c.winner_id ?? null,
+  }));
 }
 
 export async function createCampaign(data: {
@@ -403,7 +410,12 @@ export async function triggerDraw(campaignId: string) {
     },
     body: JSON.stringify({}),
   });
-  return res.json();
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Draw failed' }));
+    throw new Error(err.error || `Draw failed: ${res.status}`);
+  }
+  const raw = await res.json();
+  return raw?.value ?? raw;
 }
 
 export async function getAdminSettings() {
@@ -510,7 +522,11 @@ export async function getAdminTransactions(params?: { page?: number; limit?: num
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Failed to load transactions: ${res.status}`);
-  return res.json();
+  const raw = await res.json();
+  // Railway wraps in { value: [...] }
+  if (raw && typeof raw === 'object' && 'value' in raw) return raw.value ?? [];
+  if (Array.isArray(raw)) return raw;
+  return [];
 }
 
 export async function getAdminDeposits(params?: { page?: number; limit?: number; status?: string }) {
@@ -547,7 +563,11 @@ export async function getAdminWithdrawals(params?: { page?: number; limit?: numb
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Failed to load withdrawals: ${res.status}`);
-  return res.json();
+  const raw = await res.json();
+  // Railway wraps in { value: [...] }
+  if (raw && typeof raw === 'object' && 'value' in raw) return raw.value ?? [];
+  if (Array.isArray(raw)) return raw;
+  return [];
 }
 
 export async function approveWithdrawal(id: string) {
@@ -559,7 +579,8 @@ export async function approveWithdrawal(id: string) {
     const err = await res.json().catch(() => ({ error: 'Failed' }));
     throw new Error(err.error || 'Failed to approve withdrawal');
   }
-  return res.json();
+  const raw = await res.json();
+  return raw?.value ?? raw;
 }
 
 export async function rejectWithdrawal(id: string) {
@@ -571,7 +592,8 @@ export async function rejectWithdrawal(id: string) {
     const err = await res.json().catch(() => ({ error: 'Failed' }));
     throw new Error(err.error || 'Failed to reject withdrawal');
   }
-  return res.json();
+  const raw = await res.json();
+  return raw?.value ?? raw;
 }
 
 export async function markWithdrawalPaid(id: string) {
@@ -583,7 +605,8 @@ export async function markWithdrawalPaid(id: string) {
     const err = await res.json().catch(() => ({ error: 'Failed' }));
     throw new Error(err.error || 'Failed to mark as paid');
   }
-  return res.json();
+  const raw = await res.json();
+  return raw?.value ?? raw;
 }
 
 // ============ MOCK DATA HELPERS ============
