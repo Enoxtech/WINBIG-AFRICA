@@ -778,7 +778,6 @@ app.post('/api/admin/campaigns', authMiddleware, adminMiddleware, async (req, re
       sold_tickets: 0,
       end_date: end_date || null,
       status: 'active',
-      winner_id: null,
       prize_amount: prize_amount || 0,
       category: category || 'general',
       created_at: new Date().toISOString()
