@@ -1,5 +1,6 @@
 const ADMIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YmFxZ2xwZWFzZWxhbGRpankiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTAwMDAwMDAwLCJleHAiOjIwNjU0NzYwMDB9.5YV5am7y0RlCfqTkR-MN-H7hQTXjyvM-8YcPwGUh0gk';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const RAILWAY_URL = 'https://backend-production-9aa6.up.railway.app';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || RAILWAY_URL;
 
 async function getToken(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
