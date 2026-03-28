@@ -43,7 +43,7 @@ export default function CampaignsPage() {
 
   const sorted = [...filtered].sort((a, b) => {
     if (sort === 'ending_soon') {
-      return new Date(a.draw_date).getTime() - new Date(b.draw_date).getTime();
+      return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
     }
     if (sort === 'biggest_prize') {
       return b.prize_amount - a.prize_amount;
