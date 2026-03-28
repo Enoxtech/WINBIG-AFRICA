@@ -1,8 +1,11 @@
 'use client';
+
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import CampaignCard from '../components/CampaignCard';
+
+export const dynamic = 'force-dynamic';
 import { getCampaigns } from '../api';
 
 type FilterType = 'all' | 'active' | 'completed' | 'jackpot';
