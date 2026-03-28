@@ -14,6 +14,12 @@ import {
   createCampaign,
   triggerDraw,
   updateAdminSettings,
+  getAdminWithdrawals,
+  getAdminTransactions,
+  approveWithdrawal,
+  rejectWithdrawal,
+  markWithdrawalPaid,
+  updateCampaign,
 } from '../api';
 
 interface DashboardStats {
@@ -111,7 +117,14 @@ const NOTIF_ICONS: Record<string, string> = {
 export default function AdminPage() {
   const { user, token, logout, isLoading } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<'overview' | 'campaigns' | 'users' | 'create' | 'winners' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'campaigns' | 'users' | 'create' | 'winners' | 'settings' | 'payments'>('overview');
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [withdrawalLoading, setWithdrawalLoading] = useState(false);
+  const [withdrawalError, setWithdrawalError] = useState('');
+  const [withdrawalFilter, setWithdrawalFilter] = useState('all');
+  const [txLoading, setTxLoading] = useState(false);
+  const [txError, setTxError] = useState('');
 
   // Redirect non-admins and unauthenticated users to admin login
   useEffect(() => {
@@ -270,6 +283,14 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Load payments data when payments tab is selected
+  useEffect(() => {
+    if (tab === 'payments' && token) {
+      loadWithdrawals();
+      loadTransactions();
+    }
+  }, [tab, token, withdrawalFilter]);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
@@ -314,12 +335,78 @@ export default function AdminPage() {
     }
   };
 
-  const handleEditSave = () => {
-    if (!selectedCampaign) return;
-    setCampaigns(prev => prev.map(c => c.id === selectedCampaign.id ? { ...c, ...editForm } : c));
-    setMsg('✅ Campaign updated!');
-    setSelectedCampaign(null);
+  const handleEditSave = async () => {
+    if (!selectedCampaign || !token) return;
+    try {
+      await updateCampaign(selectedCampaign.id, editForm);
+      setCampaigns(prev => prev.map(c => c.id === selectedCampaign.id ? { ...c, ...editForm } : c));
+      setMsg('✅ Campaign updated!');
+      setSelectedCampaign(null);
+    } catch {
+      setMsg('❌ Failed to update campaign.');
+    }
     setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleApproveWithdrawal = async (id: string) => {
+    try {
+      await approveWithdrawal(id);
+      setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status: 'approved' } : w));
+      setMsg('✅ Withdrawal approved!');
+      setTimeout(() => setMsg(''), 3000);
+    } catch {
+      setMsg('❌ Failed to approve withdrawal.');
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleRejectWithdrawal = async (id: string) => {
+    if (!confirm('Reject this withdrawal request?')) return;
+    try {
+      await rejectWithdrawal(id);
+      setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status: 'rejected' } : w));
+      setMsg('❌ Withdrawal rejected.');
+      setTimeout(() => setMsg(''), 3000);
+    } catch {
+      setMsg('❌ Failed to reject withdrawal.');
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleMarkPaid = async (id: string) => {
+    try {
+      await markWithdrawalPaid(id);
+      setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status: 'paid' } : w));
+      setMsg('💵 Marked as paid!');
+      setTimeout(() => setMsg(''), 3000);
+    } catch {
+      setMsg('❌ Failed to mark as paid.');
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const loadWithdrawals = async () => {
+    if (!token) return;
+    setWithdrawalLoading(true);
+    setWithdrawalError('');
+    try {
+      const params: any = {};
+      if (withdrawalFilter !== 'all') params.status = withdrawalFilter;
+      const data = await getAdminWithdrawals(params);
+      setWithdrawals(data.withdrawals || data.value || (Array.isArray(data) ? data : []) || []);
+    } catch { setWithdrawalError('Failed to load withdrawals.'); }
+    finally { setWithdrawalLoading(false); }
+  };
+
+  const loadTransactions = async () => {
+    if (!token) return;
+    setTxLoading(true);
+    setTxError('');
+    try {
+      const data = await getAdminTransactions();
+      setTransactions(data.transactions || data.value || (Array.isArray(data) ? data : []) || []);
+    } catch { setTxError('Failed to load transactions.'); }
+    finally { setTxLoading(false); }
   };
 
   const handleMarkRead = (id: string) => {
@@ -426,6 +513,7 @@ export default function AdminPage() {
           {[
             { key: 'overview', label: '📊 Overview' },
             { key: 'campaigns', label: '🎯 Campaigns' },
+            { key: 'payments', label: '💳 Payments' },
             { key: 'winners', label: '🏆 Winners' },
             { key: 'users', label: '👥 Users' },
             { key: 'create', label: '+ New Campaign' },
@@ -1066,6 +1154,151 @@ export default function AdminPage() {
                   >
                     Save All Settings
                   </button>
+                </div>
+              </motion.div>
+            )}
+
+            {tab === 'payments' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="space-y-6">
+                  {/* Financials Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                      <p className="text-sm text-gray-500 font-medium mb-1">💰 Total Revenue</p>
+                      <p className="text-2xl font-extrabold text-deep-blue">₦0</p>
+                    </div>
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                      <p className="text-sm text-gray-500 font-medium mb-1">📤 Total Withdrawals</p>
+                      <p className="text-2xl font-extrabold text-deep-blue">₦0</p>
+                    </div>
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                      <p className="text-sm text-gray-500 font-medium mb-1">🏧 Pending Withdrawals</p>
+                      <p className="text-2xl font-extrabold text-amber-600">₦0</p>
+                    </div>
+                  </div>
+
+                  {/* Withdrawal Requests */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                      <h3 className="text-lg font-extrabold text-deep-blue">📤 Withdrawal Requests</h3>
+                      <select
+                        className="input-field text-sm py-1.5"
+                        value={withdrawalFilter}
+                        onChange={e => setWithdrawalFilter(e.target.value)}
+                      >
+                        <option value="all">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="paid">Paid</option>
+                      </select>
+                    </div>
+                    {withdrawalLoading ? (
+                      <div className="p-8 text-center text-gray-400">Loading...</div>
+                    ) : withdrawalError ? (
+                      <div className="p-8 text-center text-red-400">{withdrawalError}</div>
+                    ) : withdrawals.length === 0 ? (
+                      <div className="p-8 text-center text-gray-400">No withdrawal requests found.</div>
+                    ) : (
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">User</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Amount</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Bank</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Date</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Status</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {withdrawals.map(w => (
+                            <tr key={w.id} className="border-t border-gray-50 hover:bg-gray-50/50">
+                              <td className="px-6 py-3.5 font-medium text-gray-800">{w.user?.name || w.user_id}</td>
+                              <td className="px-6 py-3.5 font-bold text-deep-blue">₦{w.amount?.toLocaleString()}</td>
+                              <td className="px-6 py-3.5 text-gray-600 text-xs">{w.bank_name}<br/>{w.account_number}</td>
+                              <td className="px-6 py-3.5 text-gray-400 text-xs">{w.created_at ? new Date(w.created_at).toLocaleDateString('en-NG') : '-'}</td>
+                              <td className="px-6 py-3.5">
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                  w.status === 'paid' ? 'bg-green-100 text-green-700' :
+                                  w.status === 'approved' ? 'bg-blue-100 text-blue-700' :
+                                  w.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>{w.status?.toUpperCase()}</span>
+                              </td>
+                              <td className="px-6 py-3.5">
+                                {w.status === 'pending' && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleApproveWithdrawal(w.id)}
+                                      className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                      ✓ Approve
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectWithdrawal(w.id)}
+                                      className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                      ✗ Reject
+                                    </button>
+                                  </div>
+                                )}
+                                {w.status === 'approved' && (
+                                  <button
+                                    onClick={() => handleMarkPaid(w.id)}
+                                    className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors"
+                                  >
+                                    💵 Mark Paid
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+
+                  {/* Recent Transactions */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100">
+                      <h3 className="text-lg font-extrabold text-deep-blue">📊 Recent Transactions</h3>
+                    </div>
+                    {txLoading ? (
+                      <div className="p-8 text-center text-gray-400">Loading...</div>
+                    ) : txError ? (
+                      <div className="p-8 text-center text-red-400">{txError}</div>
+                    ) : transactions.length === 0 ? (
+                      <div className="p-8 text-center text-gray-400">No transactions found.</div>
+                    ) : (
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">User</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Type</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Amount</th>
+                            <th className="text-left px-6 py-3 font-semibold text-gray-500">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transactions.slice(0, 20).map((tx: any, i: number) => (
+                            <tr key={tx.id || i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                              <td className="px-6 py-3.5 font-medium text-gray-800">{tx.user_id}</td>
+                              <td className="px-6 py-3.5">
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                  tx.type === 'deposit' ? 'bg-green-100 text-green-700' :
+                                  tx.type === 'withdrawal' ? 'bg-red-100 text-red-700' :
+                                  'bg-blue-100 text-blue-700'
+                                }`}>{tx.type?.toUpperCase()}</span>
+                              </td>
+                              <td className="px-6 py-3.5 font-bold text-deep-blue">₦{Number(tx.amount || 0).toLocaleString()}</td>
+                              <td className="px-6 py-3.5 text-gray-400 text-xs">{tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-NG') : '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}

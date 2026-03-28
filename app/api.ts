@@ -324,7 +324,12 @@ export async function getAdminCampaigns() {
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Failed to load campaigns: ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  // Railway wraps in { value: [...] }
+  if (data && typeof data === 'object' && 'value' in data && Array.isArray(data.value)) {
+    return data.value;
+  }
+  return Array.isArray(data) ? data : [];
 }
 
 export async function createCampaign(data: {
@@ -526,6 +531,57 @@ export async function getAdminFinancials() {
     cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Failed to load financials: ${res.status}`);
+  return res.json();
+}
+
+// ============ ADMIN WITHDRAWALS ============
+
+export async function getAdminWithdrawals(params?: { page?: number; limit?: number; status?: string }) {
+  const qs = new URLSearchParams();
+  if (params?.page) qs.set('page', String(params.page));
+  if (params?.limit) qs.set('limit', String(params.limit));
+  if (params?.status) qs.set('status', params.status);
+  const res = await fetch(`${API_BASE}/api/admin/withdrawals?${qs}`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to load withdrawals: ${res.status}`);
+  return res.json();
+}
+
+export async function approveWithdrawal(id: string) {
+  const res = await fetch(`${API_BASE}/api/admin/withdrawals/${id}/approve`, {
+    method: 'POST',
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed' }));
+    throw new Error(err.error || 'Failed to approve withdrawal');
+  }
+  return res.json();
+}
+
+export async function rejectWithdrawal(id: string) {
+  const res = await fetch(`${API_BASE}/api/admin/withdrawals/${id}/reject`, {
+    method: 'POST',
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed' }));
+    throw new Error(err.error || 'Failed to reject withdrawal');
+  }
+  return res.json();
+}
+
+export async function markWithdrawalPaid(id: string) {
+  const res = await fetch(`${API_BASE}/api/admin/withdrawals/${id}/mark-paid`, {
+    method: 'POST',
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed' }));
+    throw new Error(err.error || 'Failed to mark as paid');
+  }
   return res.json();
 }
 
