@@ -10,11 +10,10 @@ export async function GET() {
     });
     if (!res.ok) throw new Error('Failed to fetch campaigns');
     const data = await res.json();
-    // Railway returns { value: [...] }, normalize to array directly
-    if (data?.value && Array.isArray(data.value)) {
-      return NextResponse.json(data.value);
-    }
-    return NextResponse.json(data);
+    // Railway returns { value: [...] }, normalize to { campaigns: [...] }
+    const campaigns = data?.value ?? data;
+    const arr = Array.isArray(campaigns) ? campaigns : (campaigns ? [campaigns] : []);
+    return NextResponse.json({ campaigns: arr });
   } catch (err) {
     return NextResponse.json({ error: 'Campaigns unavailable' }, { status: 503 });
   }
