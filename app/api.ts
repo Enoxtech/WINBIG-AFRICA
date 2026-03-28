@@ -23,34 +23,44 @@ async function fetchWithFallback<T>(url: string, fallbackData: T): Promise<T> {
 // ============ PUBLIC ============
 
 export async function getCampaigns() {
-  return fetchWithFallback('/api/campaigns', {
-    campaigns: [
-      {
-        id: 'weekly-mega',
-        title: 'Weekly Mega Draw',
-        description: 'Weekly draw for cash prizes',
-        prize: '₦5,000,000',
-        prize_amount: 5000000,
-        ticket_price: 2500,
-        draw_date: '2026-03-28T20:00:00Z',
-        end_date: '2026-03-28T20:00:00Z',
-        status: 'active',
-        total_tickets: 1000,
-        max_tickets: 1000,
-        maxTickets: 1000,
-        sold_tickets: 720,
-        ticketsSold: 720,
-        image_url: '',
-        imageUrl: '',
-        jackpot: false,
-      },
-    ],
-  });
+  try {
+    const res = await fetch(`${API_BASE}/api/campaigns`, {
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('API unavailable');
+    const data = await res.json();
+    // Railway returns { value: [...] }, normalize to { campaigns: [...] }
+    if ((data as any)?.value && Array.isArray((data as any).value)) {
+      return { campaigns: (data as any).value };
+    }
+    return data as { campaigns: any[] };
+  } catch {
+    return { campaigns: [] };
+  }
 }
 
 export async function getCampaign(id: string) {
-  const data = await getCampaigns();
-  const c = (data as any).campaigns?.find((c: any) => c.id === id) || null;
+  // Try individual campaign endpoint first, fall back to list lookup
+  let c: any = null;
+  try {
+    const res = await fetch(`${API_BASE}/api/campaigns/${id}`, {
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const data = await res.json();
+      // Railway returns { value: { ... } } or just { ... }
+      c = data?.value ?? data;
+    }
+  } catch {}
+  // Fall back to list lookup
+  if (!c) {
+    const data = await getCampaigns();
+    c = (data as any).campaigns?.find((c: any) => c.id === id) || null;
+  }
   if (!c) return null;
   return {
     ...c,
