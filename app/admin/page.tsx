@@ -128,7 +128,10 @@ export default function AdminPage() {
 
   // Redirect non-admins and unauthenticated users to admin login
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'admin')) {
+    if (isLoading) return; // Wait for auth to initialize
+    if (!user) {
+      router.push('/admin/login');
+    } else if (user.role !== 'admin') {
       router.push('/admin/login');
     }
   }, [user, isLoading, router]);
